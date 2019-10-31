@@ -11,13 +11,13 @@
 \usepackage{array}
 \usepackage{ulem}
 
-\usepackage[left=2.00cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
+\usepackage[left=1.50cm, right=1.50cm, top=2.00cm, bottom=2.00cm]{geometry}
 \begin{document}
 	
 \noindent
 \textbf{Cheatsheet for Answer Set Programming} \hfill Elizabeth Pankratz, Winter Semester 2019/20
 	
-\begin{longtable}{p{3cm}p{14cm}lp{3.5cm}p{3.5cm}}
+\begin{longtable}{p{3cm}p{13.5cm}lp{4cm}p{4cm}}
 	
 % What happens at the top of the first page (firsthead)
 \toprule
@@ -46,9 +46,9 @@
 	Rules
 		& Consist of a head (to the left of the implication \texttt{:-}, the computer-readable version of $\leftarrow$) and a body (to the right of the implication) and ends with a period.
 		The head is true if the body is true.
-		If the body contains conjunctions, as soon as one conjunct is false, the rule cannot be used any more because it is not true.
+		If the body contains conjunctions, as soon as one conjunct is false, the rule cannot be used any more because it is not true. \newline
 		
-		\emph{Note:} As soon as one rule shows an atom to be true, even if other rules do not, then that atom is always true. 
+		\textit{Note:} As soon as one rule shows an atom to be true, even if other rules do not, then that atom is always true. 
 		If a rule's body is false, it does not mean that the head is false -- it means we cannot use the rule to prove the head.
 		So even if we have conflicting results (i.e.\ one rule says an atom is true, another does not say it's true), then the atom is true.
 		&& \texttt{a :- b.} &\\ \midrule
@@ -234,34 +234,35 @@
 	Aggregates (sums) \newline (Ex.\ 1.11)
 		& The syntax \texttt{\#sum\{\}} defines a function over the contained set of atoms.
 		If an atom is true, then the number beside each atom is placed into a set (which, crucially, removes duplicates; left), and then each number in that set is added together.
-		If an atom is false, then the number beside it is ignored.
+		If an atom is false, then the number beside it is ignored. \newline
 		
-		For example, \texttt{x(V) :- V = \#sum\{ 1:a; 2:b \}} means \texttt{x(3)} if both \texttt{a} and \texttt{b} are true, \texttt{x(1)} if only \texttt{a} is true, and \texttt{x(2)} if only \texttt{b} is true.
+		For example, \texttt{x(V) :- V = \#sum\{ 1:a; 2:b \}} means \texttt{x(3)} if both \texttt{a} and \texttt{b} are true, \texttt{x(1)} if only \texttt{a} is true, and \texttt{x(2)} if only \texttt{b} is true. \newline
 		
 		To avoid duplicates getting lost, we can construct a tuple with an arbitrary second element which only serves to distinguish the numbers.
 		Then we add the first element in each tuple to get the sum (right).
 		
 		&& \texttt{%
-			{\scriptsize
+			{\footnotesize
 				a. \newline
 				b. \newline
 				x(V):-V=\#sum\{1:a; 1:b\}\newline
 				----------- \newline
 				x(1) }}
 		& \texttt{%
-			{\scriptsize
+			{\footnotesize
 			a. \newline
 			b. \newline
 			x(V):-V=\#sum\{1,m:a; 1,n:b\}\newline
 			----------- \newline
 			x(2) }} \\ 
 
+	(Sums cont'd)
 		& Combining choice rule notation with the \texttt{\#sum\{\}} function is a way of making constraints and rules that only hold when the sum is in a particular range. 
 		Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (not) fall into.
 		For example, the constraint \texttt{:- 1 \#sum\{\ldots\}.} means to eliminate a stable model if the sum it produces is $\geq 1$, and the rule \texttt{c :- \#sum\{\ldots\} 3.} means that \texttt{c} is true iff the sum produced by the other true atoms is $\leq$ 3.
 
 		&&\texttt{%
-			{\scriptsize
+			{\footnotesize
 			\{ a, b \}. \newline	
 			:- 1 \#sum\{ 1,x:a; 1,y:b \}. \newline
 			---------- \newline
@@ -270,7 +271,7 @@
 			\sout{\{ b \}} \newline
 			\sout{\{ a, b \}} }}
 		& \texttt{%
-			{\scriptsize
+			{\footnotesize
 				\{ a, b \}. \newline	
 				:- \#sum\{ 1:a; 1:b \} 1. \newline
 				---------- \newline
@@ -281,5 +282,7 @@
 			\textit{[unsatisfiable]}
 	
 \end{longtable}
+
+\vfill \hfill This version compiled on \today.
 	
 \end{document}

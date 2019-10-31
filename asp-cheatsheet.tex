@@ -1,0 +1,285 @@
+\documentclass[10pt,a4paper,landscape]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{lipsum}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{ulem}
+
+\usepackage[left=2.00cm, right=2.00cm, top=2.00cm, bottom=2.00cm]{geometry}
+\begin{document}
+	
+\noindent
+\textbf{Cheatsheet for Answer Set Programming} \hfill Elizabeth Pankratz, Winter Semester 2019/20
+	
+\begin{longtable}{p{3cm}p{14cm}lp{3.5cm}p{3.5cm}}
+	
+% What happens at the top of the first page (firsthead)
+\toprule
+\textbf{Concept} & \textbf{Explanation} && \multicolumn{2}{l}{\textbf{Examples}}\\ \midrule
+\endfirsthead
+
+% What happens at the top of every further page (head)
+\toprule
+\textbf{Concept} & \textbf{Explanation} && \multicolumn{2}{l}{\textbf{Examples}}\\ \midrule
+\endhead
+
+% What happens at the bottom of every page (foot)
+\hline
+\endfoot
+
+% What happens at the bottom of the last page (lastfoot)
+\bottomrule
+\endlastfoot
+	
+	
+	Truth
+		& An atom is true if it can be proven by a fact or some other kind of rule, or if we assume it is as one path in a choice rule (see below).
+		If we do not know whether the atom is true or cannot prove that it is, we consider it to be false (closed world assumption). 
+		&& -- &\\ \midrule
+	
+	Rules
+		& Consist of a head (to the left of the implication \texttt{:-}, the computer-readable version of $\leftarrow$) and a body (to the right of the implication) and ends with a period.
+		The head is true if the body is true.
+		If the body contains conjunctions, as soon as one conjunct is false, the rule cannot be used any more because it is not true.
+		
+		\emph{Note:} As soon as one rule shows an atom to be true, even if other rules do not, then that atom is always true. 
+		If a rule's body is false, it does not mean that the head is false -- it means we cannot use the rule to prove the head.
+		So even if we have conflicting results (i.e.\ one rule says an atom is true, another does not say it's true), then the atom is true.
+		&& \texttt{a :- b.} &\\ \midrule
+		
+	Stable model
+		& The atoms that satisfy (i.e.\ are true within the confines of) a particular set of rules (there is also a complicated mathematical definition on the slies if that's your thing).
+		There can be multiple stable models in your answer set if there are multiple ``paths'' through a set of rules, e.g.\ as provoked by a choice rule (see below).
+		Represented as atoms between \texttt{\{\}} below a line of \texttt{-----} after all of the rules.
+		&& \texttt{a. \newline
+				---------- \newline
+				\{ a \}} &\\ \midrule
+	
+	Fact 
+		& The atoms stated in this way are true. (Can think of facts like rules without a body, meaning that they are unconditionally true: \texttt{a :- . b :- .})
+		&& \texttt{a. \newline
+				b. \newline
+			 	---------- \newline
+		 		\{ a, b \} } &\\ \midrule
+	
+	Mutual definition \newline (Ex.\ 1.1)
+		& If two atoms are defined exclusively in terms of one another, both are considered false, since they cannot independently be proven true.
+		The empty set is the result because it is the minimal stable model (but it can be removed by constraints; see below).
+		&& \texttt{%
+			a :- b. \newline
+			b :- a. \newline
+			---------- \newline				
+		 	\{ \} } &\\ \midrule
+	
+	Negation \newline (Ex.\ 1.2, 1.3)
+		& True if the contained atom is not true or not provable (see ``Truth'' above).
+		&& \texttt{a :- not b. \newline
+				  ---------- \newline
+			  	  \{ a \} } 
+		& \texttt{a :- not b, c. \newline
+				b :- not a, d. \newline
+				c. \newline
+				---------- \newline
+				\{ a, c \}} \\ \midrule
+		
+	``Even loops \newline through negation''\slash \newline multiple paths \newline (Ex.\ 1.4)
+		& Triggered by a particular mutually contradictory statement (at right), take different paths through the rules, assuming for the first path that, say, \texttt{a} is true and \texttt{b} is false, and for the next path, that \texttt{a} is false and \texttt{b} is true.
+		This can lead to multiple stable models.
+
+		&& Trigger: \newline
+		\texttt{%
+			a :- not b. \newline
+			b :- not a. \newline
+			---------- \newline
+			\{ a \} \newline
+			\{ b \}}
+		& \texttt{%
+			a :- not b. \newline
+			b :- not a, d. \newline
+			d. \newline
+			----------- \newline
+			\{ a, d \} \newline
+			\{ b, d \}} \newline \\ %\midrule
+		
+
+		& If there are multiple triggers, i.e. that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
+		&& \texttt{%
+			a :- not b. \newline
+			b :- not a. \newline
+			c :- not d. \newline
+			d :- not c. \newline
+			---------- \newline
+			\{ a, c \} \newline
+			\{ a, d \} \newline
+			\{ b, c \} \newline
+			\{ b, d \}}
+		&\\ \midrule
+	
+	``Odd loops \newline through negation''\slash \newline paradoxes \newline (Ex.\ 1.5, 1.6)
+		& There is no way to resolve the statement \texttt{a :- not a.}, because if the body tells us one truth value for \texttt{a}, the head tells us the other.
+		So this statement produces no stable models, i.e.\ it is unsatisfiable.		
+		&& \texttt{%
+			a :- not a. \newline
+			---------- \newline}
+			\textit{[unsatisfiable]}
+		& \\ %\midrule
+		
+%	Paradoxes with \newline complex bodies \newline (Ex.\ 1.5, 1.6)
+		& If the rest of the body is true, then we reach the paradox, meaning that the model is unsatisfiable (left).
+		If there is one false atom in the body, then the rule can no longer tell us anything about the head, so we avoid the paradox and can satisfy the program (right).
+		&& \texttt{%
+			a :- not a, d. \newline
+			d. \newline
+			---------- \newline}
+			\textit{[unsatisfiable]}
+		& \texttt{%
+			a :- not a, b. \newline
+			b :- c. \newline
+			---------- \newline
+			\{ \} } \\ \midrule
+
+	Choice rules \newline (Ex.\ 1.7, 1.9)
+		& Another way to provoke multiple paths through the rules.
+		The syntax is as follows: \newline \texttt{x \{\ldots \} y.}, where $0 \leq$ \texttt{x}, \texttt{y} $\leq$ cardinality of \texttt{\{\ldots \}}. 
+		This means to take all combinations of atoms in \texttt{\{\ldots \}} (i.e.\ the power set) to be true, but where the minimum cardinality of the atoms you take is \texttt{x} and the maximum cardinality is \texttt{y}. 
+		If no \texttt{x} or \texttt{y} are given, then the defaults are \texttt{x} $ = 0$, i.e.\ $\varnothing$, and \texttt{y} $=$ cardinality of \texttt{\{\ldots \}}.
+		(If \texttt{x}, \texttt{y} $\geq$ cardinality of \texttt{\{\ldots \}}, then the program is unsatisfiable.)
+		&& \texttt{%
+			0 \{ a \} 1. \newline
+			---------- \newline
+			\{ \} \newline
+			\{ a \} }
+		& \texttt{%
+			1 \{ a \}. \newline
+			---------- \newline
+			\{ a \} }\\
+		
+		&&& \texttt{%
+			\{ a; b \}. \newline
+			---------- \newline
+			\{ \} \newline
+			\{ a \} \newline
+			\{ b \} \newline
+			\{ a, b \} }
+		& \texttt{%
+			1 \{ a; b \} 1. \newline
+			---------- \newline
+			\{ a \} \newline
+			\{ b \} }\\ \midrule
+		
+	Constraints \newline (Ex.\ 1.8, 1.9)
+		& Constraints eliminate those models from the answer set for which the condition in the body of the constraint is true.
+		They are written as a rule without a head, i.e.\ starting with \texttt{:-}.
+		Read \texttt{:- not a.} as ``eliminate if answer set has no \texttt{a}'' and \texttt{:- a.} as ``eliminate if answer set has \texttt{a}''.
+		For the former, all models are eliminated that don't contain \texttt{a}, including $\varnothing$ (left).
+		For the latter, all models are eliminated that \textit{do} contain \texttt{a}, so $\varnothing$ survives (right).
+
+		&& \texttt{%
+			:- not a. \newline
+			---------- \newline
+			\sout{\{ \}}} \newline		
+			\textit{[unsatisfiable]}
+		& \texttt{%
+			:- b. \newline
+			---------- \newline
+			\{ \} } \\
+			
+		& If a constraint has multiple atoms in its body, then all of those must simultaneously be satisfied by the answer set for the constraint to apply (left).
+		On the other hand, if several different constraints contain those atoms, then the constraints apply independently (right). \newline
+		
+		\textit{Note:} First work out all of the stable models that satisfy the program, and then check to see if constraints apply, and if yes, eliminate that model from the answer set.
+		&& \texttt{%
+			:- b, c. \newline
+			b :- c. \newline
+			c. \newline
+			---------- \newline
+			\sout{\{ b, c \}} } \newline
+			\textit{[unsatisfiable]}
+		& \texttt{%
+			:- b. \newline
+			:- c. \newline
+			c :- d. \newline
+			d. \newline
+			---------- \newline
+			\sout{\{ c, d \}} } \newline
+		\textit{[unsatisfiable]} \\ \midrule
+		
+	Cardinality rules \newline (Ex.\ 1.10)
+		& These are rules (if there's a head) or constraints (if the head is empty) that only apply when the conditions about the cardinality in the body (formatted like a choice rule) are true.
+		For example, the constraint \texttt{:- 1 \{ a;b \} 1.} means to eliminate a stable model if it contains either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).		
+		Also, the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if either \texttt{a} or \texttt{b} is true, and not true if the empty set or \texttt{\{a, b\}} are true.
+		&& \texttt{%
+			\{ a; b \}. \newline
+			:- 1 \{ a;b \} 1. \newline
+			---------- \newline
+			\{ \} \newline
+			\sout{\{ a \}} \newline
+			\sout{\{ b \}} \newline			
+			\{ a, b \}}
+		& \texttt{%
+			1 \{ a; b \}. \newline
+			c :- 1 \{ a;b \} 1. \newline
+			:- not c. \newline
+			---------- \newline
+			\{ a, c \} \newline
+			\{ b, c \} \newline
+			\sout{\{ a, b \}} } \\ \midrule
+		
+	Aggregates (sums) \newline (Ex.\ 1.11)
+		& The syntax \texttt{\#sum\{\}} defines a function over the contained set of atoms.
+		If an atom is true, then the number beside each atom is placed into a set (which, crucially, removes duplicates; left), and then each number in that set is added together.
+		If an atom is false, then the number beside it is ignored.
+		
+		For example, \texttt{x(V) :- V = \#sum\{ 1:a; 2:b \}} means \texttt{x(3)} if both \texttt{a} and \texttt{b} are true, \texttt{x(1)} if only \texttt{a} is true, and \texttt{x(2)} if only \texttt{b} is true.
+		
+		To avoid duplicates getting lost, we can construct a tuple with an arbitrary second element which only serves to distinguish the numbers.
+		Then we add the first element in each tuple to get the sum (right).
+		
+		&& \texttt{%
+			{\scriptsize
+				a. \newline
+				b. \newline
+				x(V):-V=\#sum\{1:a; 1:b\}\newline
+				----------- \newline
+				x(1) }}
+		& \texttt{%
+			{\scriptsize
+			a. \newline
+			b. \newline
+			x(V):-V=\#sum\{1,m:a; 1,n:b\}\newline
+			----------- \newline
+			x(2) }} \\ 
+
+		& Combining choice rule notation with the \texttt{\#sum\{\}} function is a way of making constraints and rules that only hold when the sum is in a particular range. 
+		Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (not) fall into.
+		For example, the constraint \texttt{:- 1 \#sum\{\ldots\}.} means to eliminate a stable model if the sum it produces is $\geq 1$, and the rule \texttt{c :- \#sum\{\ldots\} 3.} means that \texttt{c} is true iff the sum produced by the other true atoms is $\leq$ 3.
+
+		&&\texttt{%
+			{\scriptsize
+			\{ a, b \}. \newline	
+			:- 1 \#sum\{ 1,x:a; 1,y:b \}. \newline
+			---------- \newline
+			\{ \} \newline
+			\sout{\{ a \}} \newline
+			\sout{\{ b \}} \newline
+			\sout{\{ a, b \}} }}
+		& \texttt{%
+			{\scriptsize
+				\{ a, b \}. \newline	
+				:- \#sum\{ 1:a; 1:b \} 1. \newline
+				---------- \newline
+				\sout{\{ \}} \newline
+				\sout{\{ a \}} \newline
+				\sout{\{ b \}} \newline
+				\sout{\{ a, b \}} } } \newline
+			\textit{[unsatisfiable]}
+	
+\end{longtable}
+	
+\end{document}

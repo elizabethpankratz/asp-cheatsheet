@@ -1,6 +1,6 @@
-\documentclass[10pt,a4paper,landscape]{article}
+\documentclass[9pt,a4paper,landscape]{article}
 
-\usepackage[left=1.50cm, right=1.50cm, top=2.00cm, bottom=2.00cm]{geometry}
+\usepackage[left=1.50cm, right=1.50cm, top=1.50cm, bottom=1.50cm]{geometry}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{amssymb}
@@ -14,21 +14,26 @@
 \usepackage{titlesec}
 \usepackage{enumitem}
 
-\newcolumntype{L}{>{\raggedright\arraybackslash}p{3cm}}
+
+\newcolumntype{L}{>{\raggedright\arraybackslash}p{2.5cm}}
 \newcolumntype{X}{>{\raggedright\arraybackslash}p{4cm}}
-\newcommand{\atat}{\@}
 
 \titleformat*{\section}{\normalsize\bfseries}
+\titleformat*{\subsection}{\normalsize\bfseries}
+
+\setlength\parindent{0pt}
+
+% TO-DO: define environment for the program / SM format
 
 \begin{document}
 	
-\noindent
-\textbf{Cheatsheet for Answer Set Programming} \hfill Elizabeth Pankratz, Winter Semester 2019/20
+{\small
+	
+\textbf{Cheatsheet for Answer Set Programming} \hfill Elizabeth Pankratz, WS 2019/20
 	
 \section{Concepts, constructs, and notation}
 
-	
-\begin{longtable}{Lp{13.5cm}lXX}
+\begin{longtable}{Lp{14.5cm}lXX}
 	
 % What happens at the top of the first page (firsthead)
 \toprule
@@ -47,431 +52,593 @@
 % What happens at the bottom of the last page (lastfoot)
 \bottomrule
 \endlastfoot
-	
-	Rules
-		& Consist of a head (to the left of the implication \texttt{:-}, the computer-readable version of $\leftarrow$) and a body (to the right of the implication) and ends with a period.
-		The head is true if the body is true.
-		If the body contains conjunctions, as soon as one conjunct is false, the rule cannot be used any more because it is not true. \newline
-		
-		\textit{Note:} As soon as one rule shows an atom to be true, even if other rules do not, then that atom is always true. 
-		If a rule's body is false, it does not mean that the head is false -- it means we cannot use the rule to prove the head.
-		So even if we have conflicting results (i.e.\ one rule says an atom is true, another does not say it's true), then the atom is true.
-		&& \texttt{a :- b.} &\\ \midrule
 
-	Facts
-		& The atoms stated in this way are true. (Can think of facts like rules without a body, meaning that they are unconditionally true: \texttt{a :- . b :- .})
-		&& \texttt{a. \newline
-				b. \newline
-			 	---------- \newline
-		 		\{ a, b \} } &\\ \midrule
+Aggregates (sums) \newline (Ex.\ 1 Part 1  1.11)
+& The syntax \texttt{\#sum\{\}} defines a function over the contained set of atoms.
+If an atom is true, then the number beside each atom is placed into a set (which, crucially, removes duplicates; left), and then each number in that set is added together.
+If an atom is false, then the number beside it is ignored. \newline
 
-	Truth
-		& An atom is true if it can be proven by a fact or some other kind of rule, or if we assume it is as one path in a choice rule (see below).
-		If we do not know whether the atom is true or cannot prove that it is, we consider it to be false (closed world assumption). 
-		&& -- &\\ \midrule
+For example, \texttt{x(V) :- V = \#sum\{ 1:a; 2:b \}} means \texttt{x(3)} if both \texttt{a} and \texttt{b} are true, \texttt{x(1)} if only \texttt{a} is true, and \texttt{x(2)} if only \texttt{b} is true. \newline
 
-	Models
-		& A set is a model if it satisfies all rules of a program.
-		A rule is satisfied if only its head is in the set, or if the head and the entire body is in the set.
-		For example, given the program \texttt{a :- b, c, d.}:\newline
-		\begin{tabular}{ll}
-			\texttt{ \{ c, d \} } & Not a model (does not satisfy body or head of rule)\\
-			\texttt{ \{ b, c, d \} } & Not a model (satisfies body of rule but not head)\\
-			\texttt{ \{ a, b, c, d \} } & A model (satisfies body and head of rule)\\			
-		\end{tabular}
-	&& -- &\\ \midrule
-	
-	Stable models
-		& A set is a stable model (or ``answer set'') if it is a model (i.e.\ if it satisfies all the rules of a program) \textit{and} if there is justification in the program for every atom (i.e.\ if each atom is provably true).
-		The program \texttt{a :- b, c, d.} has no stable models, since none of the atoms are justified. 
-		There can be multiple stable models if there are multiple ``paths'' through a set of rules, e.g.\ as provoked by a choice rule (see below). 
-		You compute stable models using reducts (see below). \newline
-		
-		\textit{Note:} Stable models are represented in what follows as atoms between \texttt{\{\}} below \texttt{-----} after all of the rules of the program.
-		&& \texttt{a. \newline
-			---------- \newline
-			\{ a \}} &\\ \midrule
+To avoid duplicates getting lost, we can construct a tuple with an arbitrary second element which only serves to distinguish the numbers.
+Then we add the first element in each tuple to get the sum (right).
 
-	Reducts
-		& The reduct of a set $X$ is written as $P^x$ and is used to determine which models of a program are stable.
-		Formally:
-\begin{center}
-			$P^X = \{h(r) \leftarrow B^+(r) | r \in P\ \text{such that}\ B^-(r) \cap X = \varnothing \}$
-\end{center}
-		where $h$ = head of rule, $r$ = rule, $B^+(r)$ = atoms in body of rule that are positive (i.e.\ contain no negation), $B^-(r)$ = atoms in body of rule that are negative. \newline
-		
-		What this says is that the reduct contains (a) no rules that have an atom in their negative body that is also in $X$ (these are removed because we know we can't use them to justify anything, since the atom is negative in the rule but positive in our set $X$) and (b) only the positive parts of rules that have a negative atom in their body whose positive counterpart isn't in $X$ (i.e.\ all negative atoms are removed).
-		You are left with a positive program $P^X$. \newline
-		
-	&& (A step-by-step walkthrough of computing a reduct is given in Section \ref{sec:reduct}.) &\\ \midrule
-		
-	Consequence of a reduct
-		& The atoms that you can justify using the reduct $P^X$, i.e.\ the left-over positive program (see above), are the consequence of the reduct, written $Cn(P^X)$.
-		If $Cn(P^X) = X$, i.e.\ if what you put in is the same as what you get out, then you have yourself a stable model.
-	&& -- &\\ \midrule
-	
-	Intervals
-		& Ranges of numbers are notated as follows: \texttt{start .. end}, where \texttt{end} $\geq$ \texttt{start}. 
-		Going in the other direction (i.e.\ starting with the larger value) returns no values.
-		&& \texttt{%
-			a(1..3). \newline
-			---------- \newline
-			\{ a(1), a(2), a(3) \}} 
-		& \texttt{%
-			a(3..1). \newline
-			---------- \newline
-			\{ \}}
-		\\ \midrule
-
-	Constants
-		& The \texttt{\#const} directive lets you choose a constant (conventionally written in lowercase letters) as a placeholder for a particular value.
-		&& \texttt{%
-			\#const n=2. \newline
-			a(n). \newline
-			---------- \newline
-			\{ a(2) \}} & \\ \midrule
-		
-	Boolean literals
-		& The directives \texttt{\#true} and \texttt{\#false} represent the respective truth values.
-		&& \texttt{%
-			t :- \#true. \newline
-			f :- \#false. \newline
-			notf :- not \#false. \newline
-			---------- \newline				
-			\{ t, notf \} } &\\ \midrule
-	
-	Mutual definition \newline (Ex.\ 1 Part 1: 1.1)
-		& If two atoms are defined exclusively in terms of one another, both are considered false, since they cannot independently be proven true.
-		The empty set is the result because it is the minimal stable model (but it can be removed by constraints; see below).
-		&& \texttt{%
-			a :- b. \newline
-			b :- a. \newline
-			---------- \newline				
-		 	\{ \} } &\\ \midrule
-	
-	Negation \newline (Ex.\ 1 Part 1: 1.2, 1.3)
-		& True if the contained atom is not true or not provable (see ``Truth'' above).
-		&& \texttt{a :- not b. \newline
-				  ---------- \newline
-			  	  \{ a \} } 
-		& \texttt{a :- not b, c. \newline
-				b :- not a, d. \newline
-				c. \newline
-				---------- \newline
-				\{ a, c \}} \\ \midrule
-		
-	``Even loops \newline through negation''\slash \newline multiple paths \newline (Ex.\ 1 Part 1  1.4)
-		& Triggered by a particular mutually contradictory statement (at right), take different paths through the rules, assuming for the first path that, say, \texttt{a} is true and \texttt{b} is false, and for the next path, that \texttt{a} is false and \texttt{b} is true.
-		This can lead to multiple stable models.
-
-		&& Trigger: \newline
-		\texttt{%
-			a :- not b. \newline
-			b :- not a. \newline
-			---------- \newline
-			\{ a \} \newline
-			\{ b \}}
-		& \texttt{%
-			a :- not b. \newline
-			b :- not a, d. \newline
-			d. \newline
-			----------- \newline
-			\{ a, d \} \newline
-			\{ b, d \}} \newline \\ %\midrule
-		
-
-		& If there are multiple triggers, i.e. that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
-		&& \texttt{%
-			a :- not b. \newline
-			b :- not a. \newline
-			c :- not d. \newline
-			d :- not c. \newline
-			---------- \newline
-			\{ a, c \} \newline
-			\{ a, d \} \newline
-			\{ b, c \} \newline
-			\{ b, d \}}
-		&\\ \midrule
-	
-	``Odd loops \newline through negation''\slash \newline paradoxes \newline (Ex.\ 1 Part 1  1.5, 1.6)
-		& There is no way to resolve the statement \texttt{a :- not a.}, because if the body tells us one truth value for \texttt{a}, the head tells us the other.
-		So this statement produces no stable models, i.e.\ it is unsatisfiable.		
-		&& \texttt{%
-			a :- not a. \newline
-			---------- \newline}
-			\textit{[unsatisfiable]}
-		& \\ %\midrule
-		
-%	Paradoxes with \newline complex bodies \newline (Ex.\ 1 Part 1  1.5, 1.6)
-		& If the rest of the body is true, then we reach the paradox, meaning that the model is unsatisfiable (left).
-		If there is one false atom in the body, then the rule can no longer tell us anything about the head, so we avoid the paradox and can satisfy the program (right).
-		&& \texttt{%
-			a :- not a, d. \newline
-			d. \newline
-			---------- \newline}
-			\textit{[unsatisfiable]}
-		& \texttt{%
-			a :- not a, b. \newline
-			b :- c. \newline
-			---------- \newline
-			\{ \} } \\ \midrule
-
-	Choice rules \newline (Ex.\ 1 Part 1  1.7, 1.9)
-		& Another way to provoke multiple paths through the rules.
-		The syntax is as follows: \newline \texttt{x \{\ldots \} y.}, where $0 \leq$ \texttt{x}, \texttt{y} $\leq$ cardinality of \texttt{\{\ldots \}}. 
-		This means to take all combinations of atoms in \texttt{\{\ldots \}} (i.e.\ the power set) to be true, but where the minimum cardinality of the atoms you take is \texttt{x} and the maximum cardinality is \texttt{y}. 
-		If no \texttt{x} or \texttt{y} are given, then the defaults are \texttt{x} $ = 0$, i.e.\ $\varnothing$, and \texttt{y} $=$ cardinality of \texttt{\{\ldots \}}.
-		(If \texttt{x}, \texttt{y} $\geq$ cardinality of \texttt{\{\ldots \}}, then the program is unsatisfiable.)
-		&& \texttt{%
-			0 \{ a \} 1. \newline
-			---------- \newline
-			\{ \} \newline
-			\{ a \} }
-		& \texttt{%
-			1 \{ a \}. \newline
-			---------- \newline
-			\{ a \} }\\
-		
-		&&& \texttt{%
-			\{ a; b \}. \newline
-			---------- \newline
-			\{ \} \newline
-			\{ a \} \newline
-			\{ b \} \newline
-			\{ a, b \} }
-		& \texttt{%
-			1 \{ a; b \} 1. \newline
-			---------- \newline
-			\{ a \} \newline
-			\{ b \} }\\ \midrule
-		
-	Constraints \newline (Ex.\ 1 Part 1  1.8, 1.9)
-		& Constraints eliminate those models for which the condition in the body of the constraint is true.
-		They are written as a rule without a head, i.e.\ starting with \texttt{:-}.
-		Read \texttt{:- not a.} as ``eliminate if model has no \texttt{a}'' and \texttt{:- a.} as ``eliminate if model has \texttt{a}''.
-		For the former, all models are eliminated that don't contain \texttt{a}, including $\varnothing$ (left).
-		For the latter, all models are eliminated that \textit{do} contain \texttt{a}, so $\varnothing$ survives (right).
-
-		&& \texttt{%
-			:- not a. \newline
-			---------- \newline
-			\sout{\{ \}}} \newline		
-			\textit{[unsatisfiable]}
-		& \texttt{%
-			:- b. \newline
-			---------- \newline
-			\{ \} } \\
-			
-		& If a constraint has multiple atoms in its body, then all of those must simultaneously be satisfied by the model for the constraint to apply (left).
-		On the other hand, if several different constraints contain those atoms, then the constraints apply independently (right). \newline
-		
-		\textit{Note:} First work out all of the stable models that satisfy the program, and then check to see if constraints apply, and if yes, eliminate that model.
-		&& \texttt{%
-			:- b, c. \newline
-			b :- c. \newline
-			c. \newline
-			---------- \newline
-			\sout{\{ b, c \}} } \newline
-			\textit{[unsatisfiable]}
-		& \texttt{%
-			:- b. \newline
-			:- c. \newline
-			c :- d. \newline
-			d. \newline
-			---------- \newline
-			\sout{\{ c, d \}} } \newline
-		\textit{[unsatisfiable]} \\ \midrule
-		
-	Cardinality rules \newline (Ex.\ 1 Part 1  1.10)
-		& These are rules (if there's a head) or constraints (if the head is empty) that only apply when the conditions about the cardinality in the body (formatted like a choice rule) are true.
-		For example, the constraint \texttt{:- 1 \{ a;b \} 1.} means to eliminate a stable model if it contains either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).		
-		Also, the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if either \texttt{a} or \texttt{b} is true, and not true if the empty set or \texttt{\{a, b\}} are true.
-		&& \texttt{%
-			\{ a; b \}. \newline
-			:- 1 \{ a;b \} 1. \newline
-			---------- \newline
-			\{ \} \newline
-			\sout{\{ a \}} \newline
-			\sout{\{ b \}} \newline			
-			\{ a, b \}}
-		& \texttt{%
-			1 \{ a; b \}. \newline
-			c :- 1 \{ a;b \} 1. \newline
-			:- not c. \newline
-			---------- \newline
-			\{ a, c \} \newline
-			\{ b, c \} \newline
-			\sout{\{ a, b \}} } \\ \midrule
-		
-	Aggregates (sums) \newline (Ex.\ 1 Part 1  1.11)
-		& The syntax \texttt{\#sum\{\}} defines a function over the contained set of atoms.
-		If an atom is true, then the number beside each atom is placed into a set (which, crucially, removes duplicates; left), and then each number in that set is added together.
-		If an atom is false, then the number beside it is ignored. \newline
-		
-		For example, \texttt{x(V) :- V = \#sum\{ 1:a; 2:b \}} means \texttt{x(3)} if both \texttt{a} and \texttt{b} are true, \texttt{x(1)} if only \texttt{a} is true, and \texttt{x(2)} if only \texttt{b} is true. \newline
-		
-		To avoid duplicates getting lost, we can construct a tuple with an arbitrary second element which only serves to distinguish the numbers.
-		Then we add the first element in each tuple to get the sum (right).
-		
-		&& \texttt{%
-			{\footnotesize
-				a. \newline
-				b. \newline
-				x(V):-V=\#sum\{1:a; 1:b\}\newline
-				----------- \newline
-				x(1) }}
-		& \texttt{%
-			{\footnotesize
-			a. \newline
-			b. \newline
-			x(V):-V=\#sum\{1,m:a; 1,n:b\}\newline
-			----------- \newline
-			x(2) }} \\ 
+&& \texttt{%
+	{\footnotesize
+		a. \newline
+		b. \newline
+		x(V):-V=\#sum\{1:a; 1:b\}\newline
+		----------- \newline
+		x(1) }}
+& \texttt{%
+	{\footnotesize
+		a. \newline
+		b. \newline
+		x(V):-V=\#sum\{1,m:a; 1,n:b\}\newline
+		----------- \newline
+		x(2) }} \\ 
 
 %	(Sums cont'd)
-		& Combining choice rule notation with the \texttt{\#sum\{\}} function is a way of making constraints and rules that only hold when the sum is in a particular range. 
-		Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (not) fall into.
-		For example, the constraint \texttt{:- 1 \#sum\{\ldots\}.} means to eliminate a stable model if the sum it produces is $\geq 1$, and the rule \texttt{c :- \#sum\{\ldots\} 3.} means that \texttt{c} is true iff the sum produced by the other true atoms is $\leq$ 3.
+& Combining choice rule notation with the \texttt{\#sum\{\}} function is a way of making constraints and rules that only hold when the sum is in a particular range. 
+Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (not) fall into.
+For example, the constraint \texttt{:- 1 \#sum\{\ldots\}.} means to eliminate a stable model if the sum it produces is $\geq 1$, and the rule \texttt{c :- \#sum\{\ldots\} 3.} means that \texttt{c} is true iff the sum produced by the other true atoms is $\leq$ 3.
 
-		&&\texttt{%
-			{\footnotesize
-			\{ a, b \}. \newline	
-			:- 1 \#sum\{ 1,x:a; 1,y:b \}. \newline
-			---------- \newline
-			\{ \} \newline
-			\sout{\{ a \}} \newline
-			\sout{\{ b \}} \newline
-			\sout{\{ a, b \}} }}
-		& \texttt{%
-			{\footnotesize
-				\{ a, b \}. \newline	
-				:- \#sum\{ 1:a; 1:b \} 1. \newline
-				---------- \newline
-				\sout{\{ \}} \newline
-				\sout{\{ a \}} \newline
-				\sout{\{ b \}} \newline
-				\sout{\{ a, b \}} } } \newline
-			\textit{[unsatisfiable]}\\ \midrule
+&&\texttt{%
+	{\footnotesize
+		\{ a, b \}. \newline	
+		:- 1 \#sum\{ 1,x:a; 1,y:b \}. \newline
+		---------- \newline
+		\{ \} \newline
+		\sout{\{ a \}} \newline
+		\sout{\{ b \}} \newline
+		\sout{\{ a, b \}} }}
+& \texttt{%
+	{\footnotesize
+		\{ a, b \}. \newline	
+		:- \#sum\{ 1:a; 1:b \} 1. \newline
+		---------- \newline
+		\sout{\{ \}} \newline
+		\sout{\{ a \}} \newline
+		\sout{\{ b \}} \newline
+		\sout{\{ a, b \}} } } \newline
+\textit{[unsatisfiable]}\\ \midrule
+
+Boolean literals
+& The directives \texttt{\#true} and \texttt{\#false} represent the respective truth values.
+&& \texttt{%
+	t :- \#true. \newline
+	f :- \#false. \newline
+	notf :- not \#false. \newline
+	---------- \newline				
+	\{ t, notf \} } &\\ \midrule
+
+Cardinality rules \newline (Ex.\ 1 Part 1  1.10)
+& These are rules (if there's a head) or constraints (if the head is empty) that only apply when the conditions about the cardinality in the body (formatted like a choice rule) are true.
+For example, the constraint \texttt{:- 1 \{ a;b \} 1.} means to eliminate a stable model if it contains either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).		
+Also, the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if either \texttt{a} or \texttt{b} is true, and not true if the empty set or \texttt{\{a, b\}} are true.
+&& \texttt{%
+	\{ a; b \}. \newline
+	:- 1 \{ a;b \} 1. \newline
+	---------- \newline
+	\{ \} \newline
+	\sout{\{ a \}} \newline
+	\sout{\{ b \}} \newline			
+	\{ a, b \}}
+& \texttt{%
+	1 \{ a; b \}. \newline
+	c :- 1 \{ a;b \} 1. \newline
+	:- not c. \newline
+	---------- \newline
+	\{ a, c \} \newline
+	\{ b, c \} \newline
+	\sout{\{ a, b \}} } \\ \midrule		
+
+
+Choice rules \newline (Ex.\ 1 Part 1  1.7, 1.9)
+& Another way to provoke multiple paths through the rules.
+The syntax is as follows: \newline \texttt{x \{\ldots \} y.}, where $0 \leq$ \texttt{x}, \texttt{y} $\leq$ cardinality of \texttt{\{\ldots \}}. 
+This means to take all combinations of atoms in \texttt{\{\ldots \}} (i.e.\ the power set) to be true, but where the minimum cardinality of the atoms you take is \texttt{x} and the maximum cardinality is \texttt{y}. 
+If no \texttt{x} or \texttt{y} are given, then the defaults are \texttt{x} $ = 0$, i.e.\ $\varnothing$, and \texttt{y} $=$ cardinality of \texttt{\{\ldots \}}.
+(If \texttt{x}, \texttt{y} $\geq$ cardinality of \texttt{\{\ldots \}}, then the program is unsatisfiable.)
+&& \texttt{%
+	0 \{ a \} 1. \newline
+	---------- \newline
+	\{ \} \newline
+	\{ a \} }
+& \texttt{%
+	1 \{ a \}. \newline
+	---------- \newline
+	\{ a \} }\\
+
+&&& \texttt{%
+	\{ a; b \}. \newline
+	---------- \newline
+	\{ \} \newline
+	\{ a \} \newline
+	\{ b \} \newline
+	\{ a, b \} }
+& \texttt{%
+	1 \{ a; b \} 1. \newline
+	---------- \newline
+	\{ a \} \newline
+	\{ b \} }\\ \midrule
+
+
+Clark's completion $CF(P)$
+& For each atom in the normal program $P$, take the disjunction of all bodies that share that atom as the head and put this disjunction $\leftrightarrow$ (``supporting'') the head (using classical logic operators).
+All facts get $\top$, anything unjustifiable gets $\bot$.
+Models of the completion are supported models (not necessarily stable models).
+Walkthrough in \ref{subsec:compl-supp}.
+&& 
+$P = \left\{\begin{array}{l}
+a \leftarrow b. \\
+a \leftarrow \neg c. \\
+d \leftarrow . 
+\end{array}\right\}$
+& 
+{\scriptsize
+	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow b \lor (\neg c) \\
+	b \leftrightarrow \bot \\
+	c \leftrightarrow \bot \\
+	d \leftrightarrow \top
+	\end{array}\right\}$ }
+\\ \midrule
+
+Conditional literals in body \newline (Ex.\ 1 Part 2 1.4)
+& These rules hold if the condition in the body is met.
+The notation is \texttt{head :- body : condition.} 
+If the condition is fulfilled by the body, then the head is true. 
+Almost like a for loop. \newline
+
+For example, if we have facts \texttt{a(1..2). b(1..2).} and the rule \texttt{c :- a(X) : b(X).}, the rule holds and \texttt{\{c\}} becomes part of the model because, for all \texttt{X} such that \texttt{b(X)} exists, there is also a corresponding \texttt{a(X)} (i.e.\ we have both \texttt{b(1), b(2)} and \texttt{a(1), a(2)}). \newline
+
+When the condition contains multiple terms, only the variables that apply to all of those statements are checked with respect to the body.
+For example, given the rule \texttt{c :- a(X,Y) : b(X,Y), c(X).}, we ask: for all \texttt{X, Y} such that \textit{both} \texttt{b(X,Y)} \textit{and} \texttt{c(X)} hold, is \texttt{a(X,Y)} true? 
+This rule holds in the left example, because the doubled condition ignores all \texttt{b(2,\_)} since there is no \texttt{c(2)}.
+It does not hold in the right example because there's no \texttt{a(2,\_)} to match the \texttt{b(2,\_), c(2)} condition. \newline
+
+\textit{Note:} As soon as one of the preconditions is false, the body automatically becomes true and the rule holds.
+This is analogous to implications in logic -- if the precondition is false, it doesn't matter, so the consequence is true.
+
+&& {\scriptsize\texttt{%
+		a(1, 1..2). \newline
+		b(1..2, 1..2). \newline
+		c(1). \newline
+		c :- a(X,Y) : b(X,Y), c(X).\newline
+		\#show c/0.\newline
+		---------- \newline
+		\{ c \} \newline
+}} & {\scriptsize\texttt{%
+		a(1, 1..2). \newline
+		b(1..2, 1..2). \newline
+		c(2). \newline
+		c :- a(X,Y) : b(X,Y), c(X).\newline
+		\#show c/0.\newline
+		---------- \newline
+		\{ \} \newline
+}}
+
+\\ \midrule
+
+Constants
+& The \texttt{\#const} directive lets you choose a constant (conventionally written in lowercase letters) as a placeholder for a particular value.
+&& \texttt{%
+	\#const n=2. \newline
+	a(n). \newline
+	---------- \newline
+	\{ a(2) \}} & \\ \midrule
+
+
+Constraints \newline (Ex.\ 1 Part 1  1.8, 1.9)
+& Constraints eliminate those models for which the condition in the body of the constraint is true.
+They are written as a rule without a head, i.e.\ starting with \texttt{:-}.
+Read \texttt{:- not a.} as ``eliminate if model has no \texttt{a}'' and \texttt{:- a.} as ``eliminate if model has \texttt{a}''.
+For the former, all models are eliminated that don't contain \texttt{a}, including $\varnothing$ (left).
+For the latter, all models are eliminated that \textit{do} contain \texttt{a}, so $\varnothing$ survives (right).
+
+&& \texttt{%
+	:- not a. \newline
+	---------- \newline
+	\sout{\{ \}}} \newline		
+\textit{[unsatisfiable]}
+& \texttt{%
+	:- b. \newline
+	---------- \newline
+	\{ \} } \\
+
+& If a constraint has multiple atoms in its body, then all of those must simultaneously be satisfied by the model for the constraint to apply (left).
+On the other hand, if several different constraints contain those atoms, then the constraints apply independently (right). \newline
+
+\textit{Note:} First work out all of the stable models that satisfy the program, and then check to see if constraints apply, and if yes, eliminate that model.
+&& \texttt{%
+	:- b, c. \newline
+	b :- c. \newline
+	c. \newline
+	---------- \newline
+	\sout{\{ b, c \}} } \newline
+\textit{[unsatisfiable]}
+& \texttt{%
+	:- b. \newline
+	:- c. \newline
+	c :- d. \newline
+	d. \newline
+	---------- \newline
+	\sout{\{ c, d \}} } \newline
+\textit{[unsatisfiable]} \\ \midrule
+
+Dependency graph $G(P)$
+& Given a rule in a program, draw a directed edge in a graph going in the same direction as in the rule, from the atom(s) in the rule's positive body to the atom in the rule's head.
+For example, given $a \leftarrow b, \sim e$, remove the negative body and draw an arrow from $b$ to $a$ on the graph.
+Do this for all rules to create the graph of the program, $G(P)$ (a.k.a.\ positive dependency graph).
+Can be used to quickly identify loops.
+&& 
+$\left\{\begin{array}{ll}
+a \leftarrow & b \leftarrow c, d\\
+c \leftarrow a, \sim e & d \leftarrow b, c \\
+b \leftarrow\ \sim a & d \leftarrow e, \sim a
+\end{array}\right\}$  &  \\ \midrule
+% once printed, draw in G(P) from 6.1.c
+
+Facts
+& A type of rule: atoms stated in this way are unconditinoally true. (\texttt{a. b.} = \texttt{a :- . b :- .})
+&& \texttt{a. \newline
+	b. \newline
+	---------- \newline
+	\{ a, b \} } &\\ \midrule
+
+
+Interpretation
+& An assignment of all atoms in a program to true and false.
+&& -- &\\ \midrule
+
+Interpretation, partial
+& An assignment of some atoms in a program to true and false, written $\langle \{\top\}, \{\bot\} \rangle$, e.g.\ $\langle \{a\}, \{b\} \rangle$ means that $a$ is true and $b$ is false.
+&& -- &\\ \midrule
+
+Intervals
+& Ranges of numbers are notated as follows: \texttt{start .. end}, where \texttt{end} $\geq$ \texttt{start}. 
+Going in the other direction (i.e.\ starting with the larger value) returns no values.
+&& \texttt{%
+	a(1..3). \newline
+	---------- \newline
+	\{ a(1), a(2), a(3) \}} 
+& \texttt{%
+	a(3..1). \newline
+	---------- \newline
+	\{ \}}
+\\ \midrule
+
+Loops
+& Two or more atoms that are defined in terms of each other. Can be easily identified by drawing a dependency graph.
+If two loops have a node in common, then those two loops can also be joined into a larger loop.
+A program can have multiple loops.
+&& -- &\\ \midrule
+
+Loops, even \newline through negation\slash \newline multiple paths \newline (Ex.\ 1 Part 1  1.4)
+& Triggered by a particular mutually contradictory statement (at right), take different paths through the rules, assuming for the first path that, say, \texttt{a} is true and \texttt{b} is false, and for the next path, that \texttt{a} is false and \texttt{b} is true.
+This can lead to multiple stable models.
+
+&& Trigger: \newline
+\texttt{%
+	a :- not b. \newline
+	b :- not a. \newline
+	---------- \newline
+	\{ a \} \newline
+	\{ b \}}
+& \texttt{%
+	a :- not b. \newline
+	b :- not a, d. \newline
+	d. \newline
+	----------- \newline
+	\{ a, d \} \newline
+	\{ b, d \}} \newline \\ %\midrule
+
+
+& If there are multiple triggers, i.e. that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
+&& \texttt{%
+	a :- not b. \newline
+	b :- not a. \newline
+	c :- not d. \newline
+	d :- not c. \newline
+	---------- \newline
+	\{ a, c \} \newline
+	\{ a, d \} \newline
+	\{ b, c \} \newline
+	\{ b, d \}}
+&\\ \midrule
+
+Loops, odd \newline through negation\slash \newline paradoxes \newline (Ex.\ 1 Part 1  1.5, 1.6)
+& There is no way to resolve the statement \texttt{a :- not a.}, because if the body tells us one truth value for \texttt{a}, the head tells us the other.
+So this statement produces no stable models, i.e.\ it is unsatisfiable.		
+&& \texttt{%
+	a :- not a. \newline
+	---------- \newline}
+\textit{[unsatisfiable]}
+& \\ %\midrule
+
+%	Paradoxes with \newline complex bodies \newline (Ex.\ 1 Part 1  1.5, 1.6)
+& If the rest of the body is true, then we reach the paradox, meaning that the model is unsatisfiable (left).
+If there is one false atom in the body, then the rule can no longer tell us anything about the head, so we avoid the paradox and can satisfy the program (right).
+&& \texttt{%
+	a :- not a, d. \newline
+	d. \newline
+	---------- \newline}
+\textit{[unsatisfiable]}
+& \texttt{%
+	a :- not a, b. \newline
+	b :- c. \newline
+	---------- \newline
+	\{ \} } \\ \midrule
+
+
+Loop formulas $LF(P)$
+& For atoms in a loop to be true, they need to have some kind of external support. i.e.\ be justifiable using a rule whose head contains a loop atom and whose 
+So, loop formulas are used for identifying external support for loop atoms:\ they are the disjunctions of all bodies of rules (a) whose head contains a loop atom and (b) whose positive body does not contain any atoms from the loop (it's OK if the negative body contains loop atoms, those may be contained in loop formulas).
+There is one loop formula per loop in the program.
+They can also be calculated on unfounded sets.
+&& (walkthrough for a program in \ref{subsec:lf}, for unfounded sets in \ref{subsec:lf-unf}) &\\ \midrule
+
+Model
+& A set is a model if it satisfies all rules of a program.
+A rule is satisfied if only its head is in the set, or if the head and the entire body is in the set.
+For example, given the program \texttt{a :- b, c, d.}:\newline
+\begin{tabular}{ll}
+	\texttt{ \{ c, d \} } & Not a model (does not satisfy body or head of rule)\\
+	\texttt{ \{ b, c, d \} } & Not a model (satisfies body of rule but not head)\\
+	\texttt{ \{ a, b, c, d \} } & A model (satisfies body and head of rule)\\			
+\end{tabular}
+
+Stable model (adds acyclic support) $\subseteq$ supported model (adds support) $\subseteq$ model
+&& -- &\\ \midrule
+
+Model, stable
+& A set is a stable model (or ``answer set'') if it is a model (i.e.\ if it satisfies all the rules of a program) \textit{and} if there is justification in the program for every atom (i.e.\ if each atom is provably true).
+The program \texttt{a :- b, c, d.} has no stable models, since none of the atoms are justified. 
+There can be multiple stable models if there are multiple ``paths'' through a set of rules, e.g.\ as provoked by a choice rule (see below). 
+You compute stable models using reducts (see below). \newline
+
+\textit{Note:} Stable models are represented in what follows as atoms between \texttt{\{\}} below \texttt{-----} after all of the rules of the program.
+&& \texttt{a. \newline
+	---------- \newline
+	\{ a \}} &\\ \midrule
+
+Model, supported
+& A supported model is one where the program offers support for every atom in the model.
+We get supported models from the Clark's Completion of a program.
+If a program is tight (i.e.\ there are no loops), then a supported model is a stable model.
+If the program is not tight, then loop formulas are used to determine whether a supported model is a stable model (if the supported model satisfies the implication in the loop formula, then it is a stable model).
+&& (walkthrough in \ref{subsec:compl-supp}) &\\ \midrule
+
+Mutual definition \newline (Ex.\ 1 Part 1: 1.1)
+& If two atoms are defined exclusively in terms of one another, both are considered false, since they cannot independently be proven true.
+The empty set is the result because it is the minimal stable model (but it can be removed by constraints; see below).
+&& \texttt{%
+	a :- b. \newline
+	b :- a. \newline
+	---------- \newline				
+	\{ \} } &\\ \midrule
+
+Negation \newline (Ex.\ 1 Part 1: 1.2, 1.3)
+& True if the contained atom is not true or not provable (see ``Truth'' above).
+&& \texttt{a :- not b. \newline
+	---------- \newline
+	\{ a \} } 
+& \texttt{a :- not b, c. \newline
+	b :- not a, d. \newline
+	c. \newline
+	---------- \newline
+	\{ a, c \}} \\ \midrule
+
+
+Optimisation: maximise, minimise \newline (Ex.\ 1 Part 2 1.5)
+& Optimisation lets us choose between several stable models to find one that meets a particular condition. The \texttt{\#maximize} and \texttt{\#minimize} directives do the same thing as the \texttt{\#sum} directive above, but with one more step: they calculate the sums for all stable models and only let those models through into the final answer that have the largest (for \texttt{\#maximize}) or smallest (for \texttt{\#minimize}) sum. \newline
+
+In the example, the second line generates the sets \texttt{\{a(1)\}}, \texttt{\{a(2)\}}, and \texttt{\{a(1), a(2)\}} (see set generators above).
+The first two of those have a sum of 1, while the second has a sum of 2.
+Because its sum is greater than the minimum of 1, \texttt{\{a(1), a(2)\}} is removed as a candidate by the \texttt{\#minimize} directive.
+
+&& {\footnotesize\texttt{%
+		b(1..2).\newline
+		1 \{ a(X) : b(X) \}.\newline
+		\#minimize\{ 1,X : a(X) \}.\newline
+		\#show a/1.\newline
+		---------- \newline
+		\{ a(1) \} \newline
+		\{ a(2) \} \newline
+}} &\\  \midrule
+
+
+
+
+
+
+
+Program
+& Defined as a set of rules. A positive program contains only rules that contain no negation. A normal program contains at least one rule containing negation. &&&\\ \midrule
+
+Python functions \newline (Ex.\ 1 Part 2 1.6)
+& Between the \texttt{\#script(python)} and \texttt{\#end.} directives, you can define a Python function that returns some value.
+When you call that function later in the ASP program (prefacing the function name with the at symbol), the value that the function returns is what will be used, say, as a value for a variable.
+
+&& {\small\texttt{%
+		\#script(python) \newline
+		def value(): \newline
+		\mbox{~~~~}return 1 \newline
+		\#end. \newline \newline
+		a(X) :- X = [AT]value(). \newline
+		---------- \newline
+		\{ a(1) \}
+}} \\ \midrule
+
+Reduct
+& The reduct of a set $X$ is written as $P^x$ and is used to determine which models of a program are stable.
+It makes a normal program $P$ positive, wrt a given set of atoms $X$.
+Formally:
+\begin{center}
+	$P^X = \{h(r) \leftarrow B^+(r) | r \in P\ \text{such that}\ B^-(r) \cap X = \varnothing \}$
+\end{center}
+where $h$ = head of rule, $r$ = rule, $B^+(r)$ = atoms in body of rule that are positive (i.e.\ contain no negation), $B^-(r)$ = atoms in body of rule that are negative. \newline
+
+What this says is that the reduct contains (a) no rules that have an atom in their negative body that is also in $X$ (these are removed because we know we can't use them to justify anything, since the atom is negative in the rule but positive in our set $X$) and (b) only the positive parts of rules that have a negative atom in their body whose positive counterpart isn't in $X$ (i.e.\ all negative atoms are removed).
+You are left with a positive program $P^X$. \newline
+
+&& (walkthrough in \ref{subsec:reduct}) &\\ \midrule
+
+Reduct, consequence of
+& The atoms that you can justify using the reduct $P^X$, i.e.\ the left-over positive program (see above), are the consequence of the reduct, written $Cn(P^X)$.
+If $Cn(P^X) = X$, i.e.\ if what you put in is the same as what you get out, then you have yourself a stable model.
+&& -- &\\ \midrule
+
+
+Rules
+& Consist of a head (to the left of the implication \texttt{:-}, the computer-readable version of $\leftarrow$) and a body (to the right of the implication) and ends with a period.
+The head is true if the body is true.
+If the body contains conjunctions, as soon as one conjunct is false, the rule cannot be used any more because it is not true. \newline
+
+\textit{Note:} As soon as one rule shows an atom to be true, even if other rules do not, then that atom is always true. 
+If a rule's body is false, it does not mean that the head is false -- it means we cannot use the rule to prove the head.
+So even if we have conflicting results (i.e.\ one rule says an atom is true, another does not say it's true), then the atom is true.
+&& \texttt{a :- b.} &\\ \midrule
+
+Safety
+&  A rule is safe if all variables appearing anywhere within it also appear in its positive body, or in the condition of a set generator. 
+A program is safe if all rules are safe.
+A program needs to be safe because an unsafe program means that there is no domain of the variables (i.e. no mapping of variables to atoms), and we need a domain in order to ground the program so it can be solved.
+&& -- &\\ \midrule	
+
+Set generators \newline (Ex.\ 1 Part 2 1.2)
+& Generates candidate stable models using the following notation: \texttt{\{set contents : condition\}}, where numbers on either side indicate the required cardinality of the set (see cardinality rules above).
+For example, given the facts \texttt{b(1). b(2).}, the set generator \texttt{\{ a(X) : b(X) \}.} generates the following four sets: \texttt{\{\}}, \texttt{\{a(1)\}}, \texttt{\{a(2)\}}, and \texttt{\{a(1), a(2)\}}.
+The facts we know are also part of each model, so for example, the model formed by the set generator's second set is \texttt{\{ b(1), b(2), a(1) \}}. \newline
+
+These can also be used in the heads of rules, as shown in the examples. 
+Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, then the rule is applied for each candidate model as many times as there are \texttt{Y}s (right).
+
+&& {\tiny\texttt{%
+		b(1). b(2). c(3). \newline
+		1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
+		\#show a/2.\newline
+		---------- \newline
+		\{ a(2, 3) \} \newline
+		\{ a(1, 3) \} \newline
+}} &
+{\tiny\texttt{%
+		b(1). b(2). c(3). c(4). \newline
+		1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
+		\#show a/2.\newline
+		---------- \newline
+		\{ a(1, 3), a(1, 4) \} \newline
+		\{ a(1, 3), a(2, 4) \} \newline
+		\{ a(2, 3), a(1, 4) \} \newline
+		\{ a(2, 3), a(2, 4) \} \newline
+}}
+\\ \midrule
+
+Show statements \newline (Ex.\ 1 Part 2 1.6)
+& Show statements can change the parts of the stable models that \textsc{clingo} displays.
+Simply printing \texttt{\#show.} hides everything.
+\texttt{\#show a/1.} shows only instances of the predicate \texttt{a} that has an arity (valence) of 1 (i.e.\ takes only one argument, e.g.\ \texttt{a(X)}).
+\texttt{\#show a('yeah') : \#true.} is a conditional show directive that shows what's left of the colon if the condition on the right holds (as it does here; see Boolean literals above). 	
+&& -- &\\ \midrule
+
+Tightness
+& If a program $P$ has no loops, then $P$ is said to be tight, and in those cases, a supported model of $P$ is also a stable model of $P$.
+&& -- &\\ \midrule
+
+Truth
+& An atom is true if it can be proven by a fact or some other kind of rule, or if we assume it is as one path in a choice rule (see below).
+If we do not know whether the atom is true or cannot prove that it is, we consider it to be false (closed world assumption). 
+&& -- &\\ \midrule
+
+Unfounded sets
+& A set of atoms $U$ is unfounded wrt some partial interpretation if all of the rules whose heads are atoms in $U$ meet at least one of the following conditions:
+\begin{itemize}[noitemsep]
+	\item one atom of the rule's positive body is false in the partial interpretation (i.e.\  $\langle \{\}, \{\text{atom}\} \rangle$)
+	\item one atom of the rule's negative body is true in the partial interpretation (i.e.\  $\langle \{\text{atom}\}, \{\} \rangle$)
+	\item one atom of the rule's positive body is also in $U$
+\end{itemize}
+
+The easiest way to find unfounded sets is to first find the greatest unfounded set (GUS) and then check every subset in the GUS' power set for unfoundedness, using the above conditions.
+
+Also, $\varnothing$ is by definition an unfounded set.
+&& (walkthrough in \ref{subsec:unf}) &\\ \midrule
+
+Unfounded set, greatest
+& aka GUS. The union of all unfounded sets.
+Computed by subtracting the minimal model of the program's reduct wrt some partial interpretation from the set of all atoms.
+&& (walkthrough in \ref{subsec:unf})  &\\ \midrule
 	
-	Show statements \newline (Ex.\ 1 Part 2 1.6)
-		& Show statements can change the parts of the stable models that \textsc{clingo} displays.
-		Simply printing \texttt{\#show.} hides everything.
-		\texttt{\#show a/1.} shows only instances of the predicate \texttt{a} that has an arity (valence) of 1 (i.e.\ takes only one argument, e.g.\ \texttt{a(X)}).
-		\texttt{\#show a('yeah') : \#true.} is a conditional show directive that shows what's left of the colon if the condition on the right holds (as it does here; see Boolean literals above). 	
-		&& -- &\\ \midrule
+
+
+
+
+
+
+
+
+
+
+
+
 	
-	Set generators \newline (Ex.\ 1 Part 2 1.2)
-		& Generates candidate stable models using the following notation: \texttt{\{set contents : condition\}}, where numbers on either side indicate the required cardinality of the set (see cardinality rules above).
-		For example, given the facts \texttt{b(1). b(2).}, the set generator \texttt{\{ a(X) : b(X) \}.} generates the following four sets: \texttt{\{\}}, \texttt{\{a(1)\}}, \texttt{\{a(2)\}}, and \texttt{\{a(1), a(2)\}}.
-		The facts we know are also part of each model, so for example, the model formed by the set generator's second set is \texttt{\{ b(1), b(2), a(1) \}}. \newline
+
+
 		
-		These can also be used in the heads of rules, as shown in the examples. 
-		Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, then the rule is applied for each candidate model as many times as there are \texttt{Y}s (right).
-		
-		&& {\tiny\texttt{%
-			b(1). b(2). c(3). \newline
-			1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
-			\#show a/2.\newline
-			---------- \newline
-			\{ a(2, 3) \} \newline
-			\{ a(1, 3) \} \newline
-		}} &
-		{\tiny\texttt{%
-				b(1). b(2). c(3). c(4). \newline
-				1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
-				\#show a/2.\newline
-				---------- \newline
-				\{ a(1, 3), a(1, 4) \} \newline
-				\{ a(1, 3), a(2, 4) \} \newline
-				\{ a(2, 3), a(1, 4) \} \newline
-				\{ a(2, 3), a(2, 4) \} \newline
-		}}
-		\\ \midrule
-		
-	Conditional literals in body \newline (Ex.\ 1 Part 2 1.4)
-		& These rules hold if the condition in the body is met.
-		The notation is \texttt{head :- body : condition.} 
-		If the condition is fulfilled by the body, then the head is true. 
-		Almost like a for loop. \newline
-		
-		For example, if we have facts \texttt{a(1..2). b(1..2).} and the rule \texttt{c :- a(X) : b(X).}, the rule holds and \texttt{\{c\}} becomes part of the model because, for all \texttt{X} such that \texttt{b(X)} exists, there is also a corresponding \texttt{a(X)} (i.e.\ we have both \texttt{b(1), b(2)} and \texttt{a(1), a(2)}). \newline
-		
-		When the condition contains multiple terms, only the variables that apply to all of those statements are checked with respect to the body.
-		For example, given the rule \texttt{c :- a(X,Y) : b(X,Y), c(X).}, we ask: for all \texttt{X, Y} such that \textit{both} \texttt{b(X,Y)} \textit{and} \texttt{c(X)} hold, is \texttt{a(X,Y)} true? 
-		This rule holds in the left example, because the doubled condition ignores all \texttt{b(2,\_)} since there is no \texttt{c(2)}.
-		It does not hold in the right example because there's no \texttt{a(2,\_)} to match the \texttt{b(2,\_), c(2)} condition. \newline
-		
-		\textit{Note:} As soon as one of the preconditions is false, the body automatically becomes true and the rule holds.
-		This is analogous to implications in logic -- if the precondition is false, it doesn't matter, so the consequence is true.
-		
-		&& {\scriptsize\texttt{%
-			a(1, 1..2). \newline
-			b(1..2, 1..2). \newline
-			c(1). \newline
-			c :- a(X,Y) : b(X,Y), c(X).\newline
-			\#show c/0.\newline
-			---------- \newline
-			\{ c \} \newline
-		}} & {\scriptsize\texttt{%
-			a(1, 1..2). \newline
-			b(1..2, 1..2). \newline
-			c(2). \newline
-			c :- a(X,Y) : b(X,Y), c(X).\newline
-			\#show c/0.\newline
-			---------- \newline
-			\{ \} \newline
-		}}
-		
-		\\ \midrule
-	
-	Optimisation: maximise, minimise \newline (Ex.\ 1 Part 2 1.5)
-		& Optimisation lets us choose between several stable models to find one that meets a particular condition. The \texttt{\#maximize} and \texttt{\#minimize} directives do the same thing as the \texttt{\#sum} directive above, but with one more step: they calculate the sums for all stable models and only let those models through into the final answer that have the largest (for \texttt{\#maximize}) or smallest (for \texttt{\#minimize}) sum. \newline
-		
-		In the example, the second line generates the sets \texttt{\{a(1)\}}, \texttt{\{a(2)\}}, and \texttt{\{a(1), a(2)\}} (see set generators above).
-		The first two of those have a sum of 1, while the second has a sum of 2.
-		Because its sum is greater than the minimum of 1, \texttt{\{a(1), a(2)\}} is removed as a candidate by the \texttt{\#minimize} directive.
-		
-		&& {\footnotesize\texttt{%
-			b(1..2).\newline
-			1 \{ a(X) : b(X) \}.\newline
-			\#minimize\{ 1,X : a(X) \}.\newline
-			\#show a/1.\newline
-			---------- \newline
-			\{ a(1) \} \newline
-			\{ a(2) \} \newline
-		}} &\\  \midrule
-	
-	Python functions \newline (Ex.\ 1 Part 2 1.6)
-		& Between the \texttt{\#script(python)} and \texttt{\#end.} directives, you can define a Python function that returns some value.
-		When you call that function later in the ASP program (prefacing the function name with the at symbol), the value that the function returns is what will be used, say, as a value for a variable.
-		
-		&& {\small\texttt{%
-			\#script(python) \newline
-			def value(): \newline
-			\mbox{~~~~}return 1 \newline
-			\#end. \newline \newline
-			a(X) :- X = [AT]value(). \newline
-			---------- \newline
-			\{ a(1) \}
-		}} \\
+
+
+
+
+Fitting Semantics $\Phi$
+& A program's completion in the form of an operator (as such, Fitting Semantics results in supported models in the form of an interpretation, formatted like $\langle \{\top\}, \{\bot\} \rangle$) where the stuff in $\{\top\}$ is the supported model.
+To get stable models from this output, somehow remove the unfounded sets from this?
+
+&& -- &\\ \midrule
+
+Wellfounded Semantics $\Omega$
+& a
+&& -- &\\ \midrule
+
+
+Nogoods
+& a
+&& -- &\\ \midrule
+
+
 %	
 \end{longtable}
 
-% To add to table: 
-% - projection: (but I don't quite get how this works yet)
 
-\section{Computing the reduct}
-\label{sec:reduct}
+\pagebreak
+
+
+% ----------------------------------------------------------------------
+
+\section{Algorithms}
+
+\vspace{\baselineskip}
+
+\subsection{Tips for determining stable models of normal programs}
+
+If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation, then start by assuming that the heads of negative rules are true and looking for what that implies. 
+
+Also, atoms in stable models don't need to touch all rules---they can leave some of the rules untouched and that's fine. All they need is for every atom in the stable model to be justified in the program, not the other way around.
+
+\vspace{\baselineskip}
+
+\subsection{Computing the reduct}
+\label{subsec:reduct}
 
 To compute the reduct $P^X$ of a set $X$ for a program $P$, just follow these two!\ easy!\ steps!
+
 \begin{enumerate}[noitemsep]
 	\item Remove all rules in $P$ whose bodies contain one or more negative atoms whose positive counterparts are contained in $X$.
 	\item Then, remove any remaining negative atoms whose positive counterparts were not contained in $X$, but leave the rest of the rule intact.
 \end{enumerate}
 
 \noindent This remaining set of positive rules is your reduct $P^X$.
-Then, to determine the consequence of the reduct $Cn(P^X)$ (a.k.a.\ the ``transitive closure'' apparently), create a set out of only those atoms which are justified by the remaining rules.
-If this set matches the input set $X$, then $X$ is a stable model of $P$.\\
+Then, to determine the consequence of the reduct $Cn(P^X)$, create a set out of only those atoms which are justified by the remaining rules ( $Cn(P^X)$ = the ``transitive closure'' or ``minimal model of the reduct'').
+If this closure matches the input set $X$, then $X$ is a stable model of $P$.\\
 
 \noindent Let's see this in action for the program $P$ = \texttt{b :- not a. a :- not b.} and the set $X$ = \texttt{\{ a \}}.
 
@@ -496,6 +663,298 @@ Because what went in, $X$, is the same as what came out, $Cn(P^X)$, we know that
 %	content...
 %\end{tabular}
 
+\pagebreak
+% ----------------------------------------------------------------------
+
+\subsection{Computing the Clark's Completion and getting its supported models}
+\label{subsec:compl-supp}
+
+Given a program $P$, compute the completion $CF(P)$ as follows.
+
+\begin{enumerate}[noitemsep]
+	\item Begin by writing down every atom in the program followed by $\leftrightarrow$ on a new line.
+	\item Then, for each atom, find the rules with that atom in the head in $P$.
+	\begin{enumerate}[noitemsep]
+		\item If there is only one, then write its body to the right of the $\leftrightarrow$ (using logical negation).
+		\item If there is more than one rule, create a disjunction out of all of the possible bodies and write this disjunction to the right of $\leftrightarrow$ (using logical negation and disjunction).
+		\item If there is a fact for this atom, write $\top$.
+		\item If there is no justification for this atom, write $\bot$.
+	\end{enumerate}
+\end{enumerate}
+
+For example, given the program $P = \left\{\begin{array}{l}
+a \leftarrow b \\
+a \leftarrow \neg c \\
+b \leftarrow d\\
+d \leftarrow 
+\end{array}\right\}$, the completion is computed as shown.
+
+\begin{center}
+\begin{tabular}{p{3cm}p{5cm}}
+	Step & Completion-in-progress\\ \midrule
+	1 (set-up) & 	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow  \\
+	b \leftrightarrow  \\
+	c \leftrightarrow  \\
+	d \leftrightarrow 
+	\end{array}\right\}$ \\ &\\
+	%
+	2a (one rule) & 	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow  \\
+	b \leftrightarrow d \\
+	c \leftrightarrow  \\
+	d \leftrightarrow 
+	\end{array}\right\}$ \\ &\\
+	%
+	2b (multiple rules) & 	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow b \lor (\neg c) \\
+	b \leftrightarrow d \\
+	c \leftrightarrow  \\
+	d \leftrightarrow 
+	\end{array}\right\}$ \\ &\\
+	%
+	2c (facts) & 	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow b \lor (\neg c) \\
+	b \leftrightarrow d \\
+	c \leftrightarrow  \\
+	d \leftrightarrow \top
+	\end{array}\right\}$ \\ &\\
+	%
+	2d (no justifcation) & 	$CF(P) = \left\{\begin{array}{l}
+	a \leftrightarrow b \lor (\neg c) \\
+	b \leftrightarrow d \\
+	c \leftrightarrow \bot \\
+	d \leftrightarrow \top
+	\end{array}\right\}$ \\
+\end{tabular}
+\end{center}
+
+To find the supported model of the completion: if the completion contains $\top$s or $\bot$s, start with those, seeing what they imply.
+Write out everything you know from the completion (i.e.\ positive and negative atoms), adding to this set iteratively as the known atoms imply others, and then take the positive atoms as the supported model.
+For the above example:
+\vspace{-.5\baselineskip}
+\begin{center}
+	$\{d, \neg c\} \rightarrow \{d, \neg c, b\} \rightarrow \{d, \neg c, b, a\} = \{a, b, d\}$
+\end{center}
+\vspace{-.5\baselineskip}
+Can also look for odd loops through negation (i.e.\ something like $\{ d \leftrightarrow \neg e, \hspace{3pt}  e \leftrightarrow \neg d \}$, which starts you off with the beginnings of two supported models, one containing $\{d, \neg e\}$ and one $\{e, \neg d\}$). If nothing else, assume one atom and use trial-and-error. If the program contains a loop, there will be one supported model with the loop atoms and one without.
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing loop formulas}
+\label{subsec:lf}
+
+Given a program $P$ that contains a set of loops $loops(P)$, compute the loop formulas $LF(P)$ (= formulas that forbid a loop from being in a stable model) as follows.
+
+\begin{enumerate}[noitemsep]
+	\item Begin by writing out the disjunction of all atoms involved in each loop, followed by $\rightarrow$, on a new line.
+	\item Using the original program (not the completion):
+	\begin{enumerate}[noitemsep]
+		\item Identify all rules whose heads contain an atom involved in the loop.
+		\item Disqualify any rules if their positive body contains any of the atoms involved in the loop.
+		\item Take the bodies of the remaining rules and form a disjunction out of them, writing this to the right of $\rightarrow$.
+	\end{enumerate}
+\end{enumerate}
+
+For example, for the program $P = \left\{\begin{array}{lll}
+a \leftarrow & b \leftarrow\ \sim a & b \leftarrow c, d\\
+c \leftarrow a, \sim e & d \leftarrow b, c & d \leftarrow e, \sim a\\
+\end{array}\right\}$, which contains $loops(P) = \{ \{b, d\} \}$:
+
+\begin{center}
+	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
+		Step & Loop-formula-in-progress & Rules \\ \midrule
+		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
+		%
+		2a (identify rules) &  & $\begin{array}{l}
+		b \leftarrow\ \sim a\\
+		d \leftarrow b, c\\
+		b \leftarrow c, d\\
+		d \leftarrow e, \sim a
+		\end{array}$  \\ & \\
+		%
+		2b (disqualify rules) &  & $\begin{array}{ll}
+		b \leftarrow\ \sim a & \checkmark \\
+		d \leftarrow \underline{b}, c & \times  \text{ (loop atom in pos body)}\\
+		b \leftarrow c, \underline{d} & \times  \text{ (loop atom in pos body)}\\
+		d \leftarrow e, \sim a & \checkmark
+		\end{array}$  \\ & \\
+		%
+		2c (disjunction) & $b \lor d \rightarrow (\neg a) \lor (e \land \neg a)$
+	\end{tabular}
+\end{center}
+
+\vspace{\baselineskip}
+
+% ----------------------------------------------------------------------
+
+\subsection{Using loop formulas to identify stable models}
+
+To see if a supported model is also a stable model, we can check if the supported model satisfies the implication in the loop formula.
+If yes, then it is a stable model.
+
+\vspace{\baselineskip}
+
+Formally: stable models = $CF(P)\ \cup$ loop formulas.
+
+\vspace{\baselineskip}
+
+For the above example, the supported models of the completion are $\{a, c\}$ and $\{a, c, b, c\}$ (one with the loop atoms and one without).
+
+\begin{center}
+	\begin{tabular}{llp{20cm}}
+	 $\checkmark$ & $\{a, c\}$ & The precondition of the loop formula, $b \lor d$, is false, since neither $b$ nor $d$ is in the model. This makes the implication true. Thus $\{a, c\}$ is a stable model. \\
+	 $\times$ & $\{a, c, b, c\}$ & The precondition of the loop formula is true, since $b$ or $d$ is in the model (in fact, both are). However, the RHS is not fulfilled: we have $\neg e$ (by virtue of $e$ not being in the model) and $a$, while the implication requires $e$ and $\neg a$. Thus the loop formula is not satisfied, so $\{a, c, b, c\}$ is not a stable model.\\
+\end{tabular}
+\end{center}
+
+It is possible for none of the supported models to be stable models if no models satisfy the loop formulas. Then the program has no stable models.
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Finding unfounded sets}
+\label{subsec:unf}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Using loop formulas on unfounded sets}
+\label{subsec:lf-unf}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing Fitting Semantics}
+\label{subsec:fitting-sem}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing Wellfounded Semantics}
+\label{subsec:wellf-sem}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Finding nogoods}
+\label{subsec:ng}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Using nogoods to do conflict analysis}
+\label{subsec:ng-confl}
+
+abc
+
+
+% ----------------------------------------------------------------------
+
+\pagebreak
+
+\section{Answers to the quiz questions}
+
+\begin{itemize}
+	
+	\item[2] \textbf{Positive programs and stable models}
+	\begin{itemize}[noitemsep]
+		\item If a positive rule is satisfied by a set of (ground) atoms, then it is not true that each of its supersets satisfies the rule as well.
+		\begin{itemize}[noitemsep]
+			\item Because $\varnothing$ satisfies a positive rule like $a \leftarrow b$, but $\{b\}$ is a superset of $\varnothing$ and does not satisfy this rule (would need $\{b, a\}$).
+		\end{itemize}
+		\item Each positive logic program has some model.
+		\item Each positive logic program has some stable model.
+		\item A positive rule with variables is not necessarily satisfied by a set of (ground) atoms if some ground instance of the rule is satisfied by the set of atoms (all ground instances of the rule have to be satisfied, not just one).
+		\item The stable model of a positive logic program is contained in each model of the logic program (because a SM is the minimal requirement for a set to be a model).
+	\end{itemize}
+	
+	\item[3] \textbf{Normal logic programs, stable models, reducts}
+	\begin{itemize}[noitemsep]
+		\item Each normal logic program has some model.
+		\item However, each normal logic program does not necessarily have a stable model.
+		\item Given a normal logic program $P$, it is not true that the reduct $P^X$ is contained in $P^Y$ for each subset $X$ of a set of $Y$ atoms.
+		\begin{itemize}[noitemsep]
+			\item Because the reduct gets smaller if there are more atoms, since more rules get crossed out. So $X$ being a subset of $Y$ (i.e. $Y$ has more atoms, is more restrictive) means that the reduct $P^Y$ is a subset of the reduct $P^X$, rather than the other way around.
+		\end{itemize}
+		\item If a set $X$ of atoms is a model of a normal logic program $P$, then $X$ is a model of the reduct $P^Y$ for each superset $Y$ of $X$.
+		\item Given a normal logic program $P$, each stable model of $P$ is a proper subset minimal model of $P$.
+	\end{itemize}
+	
+	\item[4] \textbf{Choice rules and integrity constraints}
+	\begin{itemize}[noitemsep]
+		\item Each interpretation (combination of atoms) satisfies a choice rule without lower and upper bounds, i.e.\ $0 \{ \ldots \} \infty$.
+		\item It is not true that a logic program without choice rules has at most one stable model.
+		\begin{itemize}[noitemsep]
+			\item If a logic program has even loops through negation, then there can be two stable models, since $1\{a, b\}1$ is the same as $\{a \leftarrow \sim b, b \leftarrow \sim a\}$.
+		\end{itemize} 
+		\item The stable models of a logic program $P \cup C$, where $C$ is a set of integrity constraints, are stable models of $P$.
+		\begin{itemize}[noitemsep]
+			\item Constraints can only remove answer sets / prune them, not change whether or not something is a stable model or not.
+		\end{itemize}
+		\item A logic program without integrity constraints does not necessarily have a stable model.
+		\begin{itemize}[noitemsep]
+			\item For example, if there is an odd loop (a.k.a.\ a paradox), like $a \leftarrow not a$ -- this can result in no SM without there being an integrity constraint.
+		\end{itemize}
+		\item ASP systems do not first evaluate choice rules and then prune stable model candidates that violate integrity constraints.
+	\end{itemize}
+	
+	\item[5] \textbf{Safety, grounding}
+	\begin{itemize}[noitemsep]
+		\item It is not true that a rule is safe if all variables in its head also appear in its body. It should be: A rule is safe if all variables anywhere within it also appear in its positive body.
+		\begin{itemize}[noitemsep]
+			\item Example of unsafe rule: $a(X) \leftarrow \sim b(X)$. $X$ does not appear in a positive body.
+		\end{itemize}
+		\item It is not true that each safe program has a finite number of finite stable models.
+		\begin{itemize}[noitemsep]
+			\item Example of a program that is safe but that gives an infinite SM: $\{ P(X+1) \leftarrow P(X). P(0). \}$ gives $\{0, 1, 2, 3, \ldots, \infty \}$.
+		\end{itemize}
+		\item It is not true that grounders (partially) evaluate the body literals of a rule in the order given by an encoding. Order of literals in body doesn't matter for grounder.
+	\end{itemize}
+	
+	\pagebreak
+	
+	\item[6] \textbf{Clark's Completion and loop formulas}
+	\begin{itemize}[noitemsep]
+		\item It is not true that, if a set of atoms $X$ is a model of a normal program $P$, then $X$ is a model of $CF(P)$.
+		\begin{itemize}[noitemsep]
+			\item Example: The set $X = \{a\}$ is a model of $P = \{a \leftarrow \sim a\}$, but not of  $CF(P) = \{a \leftrightarrow \neg a\}$
+		\end{itemize}
+		\item Given a normal program $P$, if a set of atoms $X$ is a model of $CF(P)$, then $X$ is a model of $P$.
+		\item Given a normal program $P$, it is not true that, if a set of atom $X$ is a model of $CF(P)$, then $X$ is a stable model of $P$.
+		\begin{itemize}[noitemsep]
+			\item Example: Given the program $P = \{a \leftarrow a\}$, $X = \{a\}$ is a model of the completion but not a stable model.
+		\end{itemize}
+		\item If $X$ is a stable model of a normal program $P$, then $X$ is a model of $CF(P)$.
+		\item Given a normal program $P$, it is not true that, if $CF(P)$ has (at least) one model, then $P$ has (at least) one stable model.
+		\begin{itemize}[noitemsep]
+			\item Example: For the program $P = \{a \leftarrow a, a \leftarrow \sim a\}$, $X = \{a\}$ is a model of the completion $CF(P) = \{a \leftrightarrow (a \lor \neg a)\}$, but $P$ has no stable models.
+		\end{itemize}
+		\item Let $P$ be a normal program and $L_1, L_2 \in loop(P)$. If $(L_1 \cap L_2) \neq \varnothing$, then $(L_1 \cup L_2) \in loop(P)$.
+	\end{itemize}
+	
+	\item[8] \textbf{Nogoods, conflict-driven ASP solving}
+	\begin{itemize}[noitemsep]
+		\item It is not the case that, to compute the stable models of a logic program $P$, ASP systems first construct a flat internal representation of the nogoods in $\Delta_P \cup \Lambda_P$.
+		\item For each tight logic program, the solutions of $\Delta_P$ coincide with the solutions of $\Delta_P \cup \Lambda_P$.
+		\item A Unique Implication Point (UIP) of a decision level, along with literals assigned at smaller decision levels, lead to a conflict by propagation.
+		\item Each decision level beyond 0 at which a conflict occurs has some UIP.
+		\item If a logic program has no stable model, it is false that conflict-driven ASP solving procedures may loop infinitely.
+	\end{itemize}
+\end{itemize}
+
+% ----------------------------------------------------------------------
+
 \vfill \hfill This version compiled on \today.
+
+}
 	
 \end{document}

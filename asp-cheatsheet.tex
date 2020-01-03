@@ -21,15 +21,399 @@
 \titleformat*{\section}{\normalsize\bfseries}
 \titleformat*{\subsection}{\normalsize\bfseries}
 
+\newcommand{\msout}[1]{\text{\sout{$#1$}}}
+
 \setlength\parindent{0pt}
 
-% TO-DO: define environment for the program / SM format
-
 \begin{document}
+	
+% ----------------------------------------------------------------------
 	
 {\small
 	
 \textbf{Cheatsheet for Answer Set Programming} \hfill Elizabeth Pankratz, WS 2019/20
+	
+\section{Algorithms and walk-throughs}
+
+\vspace{\baselineskip}
+
+% ----------------------------------------------------------------------
+
+\subsection{Tips for determining stable models of normal programs}
+
+If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation, then start by assuming that the heads of negative rules are true and looking for what that implies. 
+
+Also, atoms in stable models don't need to touch all rules---they can leave some of the rules untouched and that's fine. All they need is for every atom in the stable model to be justified in the program, not the other way around.
+
+\vspace{\baselineskip}
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing the reduct}
+\label{subsec:reduct}
+
+To compute the reduct $P^X$ of a set $X$ for a program $P$, just follow these two!\ easy!\ steps!
+
+\begin{enumerate}[noitemsep]
+	\item Remove all rules in $P$ whose bodies contain one or more negative atoms whose positive counterparts are contained in $X$.
+	\item Then, remove any remaining negative atoms whose positive counterparts were not contained in $X$, but leave the rest of the rule intact.
+\end{enumerate}
+
+\noindent This remaining set of positive rules is your reduct $P^X$.
+Then, to determine the consequence of the reduct $Cn(P^X)$, create a set out of only those atoms which are justified by the remaining rules ( $Cn(P^X)$ = the ``transitive closure'' or ``minimal model of the reduct'').
+If this closure matches the input set $X$, then $X$ is a stable model of $P$.\\
+
+\noindent Let's see this in action for the program $P$ = \texttt{b :- not a. a :- not b.} and the set $X$ = \texttt{\{ a \}}.
+
+\begin{center}
+	\begin{tabular}{p{5cm}p{5cm}}
+		Step & Reduct-in-progress \\ \midrule
+		
+		0 (original program)	& \texttt{b :- not a. \newline a :- not b.} \\&\\
+		
+		1 (remove rules where any atom in $X$ is negative) & \texttt{\sout{b :- not a.} \newline a :- not b.} \\&\\
+		
+		2 (remove all remaining negative atoms)	& \texttt{\sout{b :- not a.} \newline a :- \sout{not b.}} \\&\\
+		
+		$P^X$ & \texttt{a :- .}
+	\end{tabular}
+\end{center}
+
+\noindent The consequence of this stable model is $Cn(P^X) =$ \texttt{\{ a \}}.
+Because what went in, $X$, is the same as what came out, $Cn(P^X)$, we know that \texttt{\{ a \}} is a stable model of $P$.
+
+%\begin{tabular}{lllll}
+%	content...
+%\end{tabular}
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing the Clark's Completion and getting its supported models}
+\label{subsec:compl-supp}
+
+Given a program $P$, compute the completion $CF(P)$ as follows.
+
+\begin{enumerate}[noitemsep]
+	\item Begin by writing down every atom in the program followed by $\leftrightarrow$ on a new line.
+	\item Then, for each atom, find the rules with that atom in the head in $P$.
+	\begin{enumerate}[noitemsep]
+		\item If there is only one, then write its body to the right of the $\leftrightarrow$ (using logical negation).
+		\item If there is more than one rule, create a disjunction out of all of the possible bodies and write this disjunction to the right of $\leftrightarrow$ (using logical negation and disjunction).
+		\item If there is a fact for this atom, write $\top$.
+		\item If there is no justification for this atom, write $\bot$.
+	\end{enumerate}
+\end{enumerate}
+
+For example, given the program $P = \left\{\begin{array}{l}
+a \leftarrow b \\
+a \leftarrow \neg c \\
+b \leftarrow d\\
+d \leftarrow 
+\end{array}\right\}$, the completion is computed as shown.
+
+\begin{center}
+	\begin{tabular}{p{3cm}p{5cm}}
+		Step & Completion-in-progress\\ \midrule
+		1 (set-up) & 	$CF(P) = \left\{\begin{array}{l}
+		a \leftrightarrow  \\
+		b \leftrightarrow  \\
+		c \leftrightarrow  \\
+		d \leftrightarrow 
+		\end{array}\right\}$ \\ &\\
+		%
+		2a (one rule) & 	$CF(P) = \left\{\begin{array}{l}
+		a \leftrightarrow  \\
+		b \leftrightarrow d \\
+		c \leftrightarrow  \\
+		d \leftrightarrow 
+		\end{array}\right\}$ \\ &\\
+		%
+		2b (multiple rules) & 	$CF(P) = \left\{\begin{array}{l}
+		a \leftrightarrow b \lor (\neg c) \\
+		b \leftrightarrow d \\
+		c \leftrightarrow  \\
+		d \leftrightarrow 
+		\end{array}\right\}$ \\ &\\
+		%
+		2c (facts) & 	$CF(P) = \left\{\begin{array}{l}
+		a \leftrightarrow b \lor (\neg c) \\
+		b \leftrightarrow d \\
+		c \leftrightarrow  \\
+		d \leftrightarrow \top
+		\end{array}\right\}$ \\ &\\
+		%
+		2d (no justifcation) & 	$CF(P) = \left\{\begin{array}{l}
+		a \leftrightarrow b \lor (\neg c) \\
+		b \leftrightarrow d \\
+		c \leftrightarrow \bot \\
+		d \leftrightarrow \top
+		\end{array}\right\}$ \\
+	\end{tabular}
+\end{center}
+
+To find the supported model of the completion: if the completion contains $\top$s or $\bot$s, start with those, seeing what they imply.
+Write out everything you know from the completion (i.e.\ positive and negative atoms), adding to this set iteratively as the known atoms imply others, and then take the positive atoms as the supported model.
+For the above example:
+\vspace{-.5\baselineskip}
+\begin{center}
+	$\{d, \neg c\} \rightarrow \{d, \neg c, b\} \rightarrow \{d, \neg c, b, a\} = \{a, b, d\}$
+\end{center}
+\vspace{-.5\baselineskip}
+Can also look for odd loops through negation (i.e.\ something like $\{ d \leftrightarrow \neg e, \hspace{3pt}  e \leftrightarrow \neg d \}$, which starts you off with the beginnings of two supported models, one containing $\{d, \neg e\}$ and one $\{e, \neg d\}$). If nothing else, assume one atom and use trial-and-error. If the program contains a loop, there will be one supported model with the loop atoms and one without.
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing loop formulas}
+\label{subsec:lf}
+
+Given a program $P$ that contains a set of loops $loops(P)$, compute the loop formulas $LF(P)$ (= formulas that forbid a loop from being in a stable model) as follows.
+
+\begin{enumerate}[noitemsep]
+	\item Begin by writing out the disjunction of all atoms involved in each loop, followed by $\rightarrow$, on a new line.
+	\item Using the original program (not the completion):
+	\begin{enumerate}[noitemsep]
+		\item Identify all rules whose heads contain an atom involved in the loop.
+		\item Disqualify any rules if their positive body contains any of the atoms involved in the loop.
+		\item Take the bodies of the remaining rules and form a disjunction out of them, writing this to the right of $\rightarrow$.
+	\end{enumerate}
+\end{enumerate}
+
+For example, for the program $P = \left\{\begin{array}{lll}
+a \leftarrow & b \leftarrow\ \sim a & b \leftarrow c, d\\
+c \leftarrow a, \sim e & d \leftarrow b, c & d \leftarrow e, \sim a\\
+\end{array}\right\}$, which contains $loops(P) = \{ \{b, d\} \}$:
+
+\begin{center}
+	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
+		Step & Loop-formula-in-progress & Rules \\ \midrule
+		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
+		%
+		2a (identify rules) &  & $\begin{array}{l}
+		b \leftarrow\ \sim a\\
+		d \leftarrow b, c\\
+		b \leftarrow c, d\\
+		d \leftarrow e, \sim a
+		\end{array}$  \\ & \\
+		%
+		2b (disqualify rules) &  & $\begin{array}{ll}
+		b \leftarrow\ \sim a & \checkmark \\
+		d \leftarrow \underline{b}, c & \times  \text{ (loop atom in pos body)}\\
+		b \leftarrow c, \underline{d} & \times  \text{ (loop atom in pos body)}\\
+		d \leftarrow e, \sim a & \checkmark
+		\end{array}$  \\ & \\
+		%
+		2c (disjunction) & $b \lor d \rightarrow (\neg a) \lor (e \land \neg a)$
+	\end{tabular}
+\end{center}
+
+\vspace{\baselineskip}
+
+% ----------------------------------------------------------------------
+
+\subsection{Using loop formulas to identify stable models}
+
+To see if a supported model is also a stable model, we can check if the supported model satisfies the implication in the loop formula.
+If yes, then it is a stable model.
+
+\vspace{\baselineskip}
+
+Formally: stable models = $CF(P)\ \cup$ loop formulas.
+
+\vspace{\baselineskip}
+
+For the above example, the supported models of the completion are $\{a, c\}$ and $\{a, c, b, c\}$ (one with the loop atoms and one without).
+
+\begin{center}
+	\begin{tabular}{llp{20cm}}
+		$\checkmark$ & $\{a, c\}$ & The precondition of the loop formula, $b \lor d$, is false, since neither $b$ nor $d$ is in the model. This makes the implication true. Thus $\{a, c\}$ is a stable model. \\
+		$\times$ & $\{a, c, b, c\}$ & The precondition of the loop formula is true, since $b$ or $d$ is in the model (in fact, both are). However, the RHS is not fulfilled: we have $\neg e$ (by virtue of $e$ not being in the model) and $a$, while the implication requires $e$ and $\neg a$. Thus the loop formula is not satisfied, so $\{a, c, b, c\}$ is not a stable model.\\
+	\end{tabular}
+\end{center}
+
+It is possible for none of the supported models to be stable models if no models satisfy the loop formulas. Then the program has no stable models.
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Finding unfounded sets}
+\label{subsec:unf}
+
+Find all unfounded sets of a program $P$ wrt a partial interpretation $\langle \{\top\}, \{\bot\} \rangle$ as follows:
+\begin{enumerate}[noitemsep]
+	\item Remove rules from the program that are incompatible with the partial interpretation (i.e.\ where an atom in the negative body is in $\{\top\}$, or where an atom in the positive body is in $\{\bot\}$).
+	\item Compute the second step of the reduct for the remaining rules, crossing out all remaining negative atoms in bodies.
+	\item Get the minimal model of the reduct (= those atoms that are justifiable using the remaining rules in the program).
+	\item Take the complement of the minimal model wrt all atoms in the program, $A$. The result is the greatest unfounded set (GUS).
+	\item Generate all subsets of the GUS and check to see if each of those is unfounded using the criteria below.
+\end{enumerate}
+
+Unfoundedness criteria: A set of atoms $U$ is unfounded wrt some partial interpretation if all rules in the program whose heads are atoms in $U$ meet at least one of the following conditions:
+
+\begin{enumerate}[noitemsep, label=(\roman*)]
+	\item one atom of the rule's positive body is false in the partial interpretation (i.e.\  $\langle \{\}, \{\text{atom}\} \rangle$)
+	\item one atom of the rule's negative body is true in the partial interpretation (i.e.\  $\langle \{\text{atom}\}, \{\} \rangle$)
+	\item one atom of the rule's positive body is also in $U$
+\end{enumerate}
+
+For example, given the program $P = \left\{\begin{array}{lll}
+a \leftarrow\ \sim d & b \leftarrow\ \sim a & b \leftarrow d, e\\
+c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
+\end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
+
+\begin{center}
+	\begin{tabular}{p{5cm}p{9cm}p{8cm}}
+	Step & Work-in-progress & Notes\\ \midrule
+	%
+	1 (remove incompatible rules) & $P = \left\{\begin{array}{lll}
+	a \leftarrow\ \sim d & \msout{b \leftarrow\ \underline{\sim a}} & b \leftarrow d, e\\
+	c \leftarrow a, \sim e & \msout{d \leftarrow \underline{b}, c} & e \leftarrow d, \sim c\\
+	\end{array}\right\}$ & $a$ is $\top$ but in neg body; $b$ is $\bot$ but in pos body. \\ &\\
+	%
+	2 (rm neg atoms to get reduct) & $P = \left\{\begin{array}{lll}
+	a \leftarrow\ \msout{\sim d }& \msout{b \leftarrow\ \sim a} & b \leftarrow d, e\\
+	c \leftarrow a, \msout{\sim e} & \msout{d \leftarrow b, c} & e \leftarrow d, \msout{\sim c}\\
+	\end{array}\right\}$ & \\ &\\
+	%
+	3 (minimal model) & $\{a, c\}$ & (this doesn't necessarily mean that these atoms are true)\\ &\\
+	%
+	4 (complement wrt $A$) &  $\{a, b, c, d, e\} \backslash \{a, c\} = \{b, d, e\}$ & Thus, the GUS is $\{b, d, e\}$ \\ &\\
+	%
+	5 (subsets unfounded?) & $\begin{array}{lllc} 
+		\text{Subsets of GUS} & \text{Rules} & \text{Unf.\ criterion} & U \text{ unf?}\\ \midrule
+		U = \{b, d\} 	& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+						& b \leftarrow \underline{d}, e		& (iii)\ d \in U & \\
+						& d \leftarrow \underline{b}, c		& (iii)\ b \in U, = \bot & \checkmark \\ \midrule
+						%
+		U = \{b, e\} 	& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+						& b \leftarrow d, \underline{e}		& (iii)\ e \in U & \\
+						& e \leftarrow d, \sim c			& \text{external support} & \times \\ \midrule
+						%
+		U = \{d, e\} 	& d \leftarrow \underline{b}, c 	& (i)\ b = \bot & \\
+						& e \leftarrow \underline{d}, \sim c& (iii)\ d \in U & \checkmark \\ \midrule
+						%
+		U = \{b\} 		& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+						& b \leftarrow d, e					& \text{external support} & \times \\ \midrule
+						%
+		U = \{d\} 		& d \leftarrow \underline{b}, c		& (iii)\ b = \bot & \checkmark \\ \midrule
+						%
+		U = \{e\} 		& e \leftarrow d, \sim c 			& \text{external support} & \times \\ \midrule
+		U = \varnothing 	&  & & \checkmark \\ \midrule
+	\end{array}$
+	& Thus, the unfounded sets are $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$. \\
+\end{tabular}
+\end{center}
+
+\pagebreak
+
+% ----------------------------------------------------------------------
+
+\subsection{Using loop formulas on unfounded sets}
+\label{subsec:lf-unf}
+
+Using the same method as outlined above for computing loop formulas for the elements of $loops(P)$, loop formulas can also be calculated for unfounded sets.
+Then the formulas are compared to the partial interpretation used to generate the unfounded sets. (Why? Not sure.)
+
+For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\},$ and $\{d\}$, for the program $P = \left\{\begin{array}{lll}
+a \leftarrow\ \sim d & b \leftarrow\ \sim a & b \leftarrow d, e\\
+c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
+\end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
+
+\begin{center}
+	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
+		Step & Loop-formulas-in-progress & Rules \\ \midrule
+		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
+		%
+		2a (identify rules) &  & $\begin{array}{l}
+		b \leftarrow\ \sim a\\
+		b \leftarrow d, e\\
+		d \leftarrow b, c
+		\end{array}$  \\ & \\
+		%
+		2b (disqualify rules) &  & $\begin{array}{ll}
+		b \leftarrow\ \underline{\sim a} & \times \hspace{8pt} (a = \top) \\
+		b \leftarrow \underline{d}, e & \times \hspace{8pt} (d \in U) \\
+		d \leftarrow \underline{b}, c & \times \hspace{8pt} (b = \bot) 
+		\end{array}$  \\ & \\
+		%
+		2c (disjunction) & $b \lor d \rightarrow \ldots ?$ \\ \midrule
+		%
+		%
+		%
+%		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
+%		%
+%		2a (identify rules) &  & $\begin{array}{l}
+%		b \leftarrow\ \sim a\\
+%		b \leftarrow d, e\\
+%		d \leftarrow b, c
+%		\end{array}$  \\ & \\
+%		%
+%		2b (disqualify rules) &  & $\begin{array}{ll}
+%		b \leftarrow\ \sim a\\
+%		b \leftarrow d, e\\
+%		d \leftarrow b, c & \checkmark
+%		\end{array}$  \\ & \\
+%		%
+%		2c (disjunction) & $b \lor d \rightarrow \ldots$ \\ \midrule
+%		%
+%		%
+%		%
+%		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
+%		%
+%		2a (identify rules) &  & $\begin{array}{l}
+%		b \leftarrow\ \sim a\\
+%		b \leftarrow d, e\\
+%		d \leftarrow b, c
+%		\end{array}$  \\ & \\
+%		%
+%		2b (disqualify rules) &  & $\begin{array}{ll}
+%		b \leftarrow\ \sim a\\
+%		b \leftarrow d, e\\
+%		d \leftarrow b, c & \checkmark
+%		\end{array}$  \\ & \\
+%		%
+%		2c (disjunction) & $b \lor d \rightarrow \ldots$ \\ \midrule
+	\end{tabular}
+\end{center}
+
+What does this tell us? Why is this useful to do?
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing Fitting Semantics}
+\label{subsec:fitting-sem}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Computing Wellfounded Semantics}
+\label{subsec:wellf-sem}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Finding nogoods}
+\label{subsec:ng}
+
+abc
+
+% ----------------------------------------------------------------------
+
+\subsection{Using nogoods to do conflict analysis}
+\label{subsec:ng-confl}
+
+abc
+
+
+% ----------------------------------------------------------------------
+
+\pagebreak
 	
 \section{Concepts, constructs, and notation}
 
@@ -613,253 +997,6 @@ Nogoods
 
 
 % ----------------------------------------------------------------------
-
-\section{Algorithms}
-
-\vspace{\baselineskip}
-
-\subsection{Tips for determining stable models of normal programs}
-
-If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation, then start by assuming that the heads of negative rules are true and looking for what that implies. 
-
-Also, atoms in stable models don't need to touch all rules---they can leave some of the rules untouched and that's fine. All they need is for every atom in the stable model to be justified in the program, not the other way around.
-
-\vspace{\baselineskip}
-
-\subsection{Computing the reduct}
-\label{subsec:reduct}
-
-To compute the reduct $P^X$ of a set $X$ for a program $P$, just follow these two!\ easy!\ steps!
-
-\begin{enumerate}[noitemsep]
-	\item Remove all rules in $P$ whose bodies contain one or more negative atoms whose positive counterparts are contained in $X$.
-	\item Then, remove any remaining negative atoms whose positive counterparts were not contained in $X$, but leave the rest of the rule intact.
-\end{enumerate}
-
-\noindent This remaining set of positive rules is your reduct $P^X$.
-Then, to determine the consequence of the reduct $Cn(P^X)$, create a set out of only those atoms which are justified by the remaining rules ( $Cn(P^X)$ = the ``transitive closure'' or ``minimal model of the reduct'').
-If this closure matches the input set $X$, then $X$ is a stable model of $P$.\\
-
-\noindent Let's see this in action for the program $P$ = \texttt{b :- not a. a :- not b.} and the set $X$ = \texttt{\{ a \}}.
-
-\begin{center}
-	\begin{tabular}{p{5cm}p{5cm}}
-	Step & Reduct-in-progress \\ \midrule
-	
-	0 (original program)	& \texttt{b :- not a. \newline a :- not b.} \\&\\
-	
-	1 (remove rules where any atom in $X$ is negative) & \texttt{\sout{b :- not a.} \newline a :- not b.} \\&\\
-	
-	2 (remove all remaining negative atoms)	& \texttt{\sout{b :- not a.} \newline a :- \sout{not b.}} \\&\\
-	
-	$P^X$ & \texttt{a :- .}
-\end{tabular}
-\end{center}
-
-\noindent The consequence of this stable model is $Cn(P^X) =$ \texttt{\{ a \}}.
-Because what went in, $X$, is the same as what came out, $Cn(P^X)$, we know that \texttt{\{ a \}} is a stable model of $P$.
-
-%\begin{tabular}{lllll}
-%	content...
-%\end{tabular}
-
-\pagebreak
-% ----------------------------------------------------------------------
-
-\subsection{Computing the Clark's Completion and getting its supported models}
-\label{subsec:compl-supp}
-
-Given a program $P$, compute the completion $CF(P)$ as follows.
-
-\begin{enumerate}[noitemsep]
-	\item Begin by writing down every atom in the program followed by $\leftrightarrow$ on a new line.
-	\item Then, for each atom, find the rules with that atom in the head in $P$.
-	\begin{enumerate}[noitemsep]
-		\item If there is only one, then write its body to the right of the $\leftrightarrow$ (using logical negation).
-		\item If there is more than one rule, create a disjunction out of all of the possible bodies and write this disjunction to the right of $\leftrightarrow$ (using logical negation and disjunction).
-		\item If there is a fact for this atom, write $\top$.
-		\item If there is no justification for this atom, write $\bot$.
-	\end{enumerate}
-\end{enumerate}
-
-For example, given the program $P = \left\{\begin{array}{l}
-a \leftarrow b \\
-a \leftarrow \neg c \\
-b \leftarrow d\\
-d \leftarrow 
-\end{array}\right\}$, the completion is computed as shown.
-
-\begin{center}
-\begin{tabular}{p{3cm}p{5cm}}
-	Step & Completion-in-progress\\ \midrule
-	1 (set-up) & 	$CF(P) = \left\{\begin{array}{l}
-	a \leftrightarrow  \\
-	b \leftrightarrow  \\
-	c \leftrightarrow  \\
-	d \leftrightarrow 
-	\end{array}\right\}$ \\ &\\
-	%
-	2a (one rule) & 	$CF(P) = \left\{\begin{array}{l}
-	a \leftrightarrow  \\
-	b \leftrightarrow d \\
-	c \leftrightarrow  \\
-	d \leftrightarrow 
-	\end{array}\right\}$ \\ &\\
-	%
-	2b (multiple rules) & 	$CF(P) = \left\{\begin{array}{l}
-	a \leftrightarrow b \lor (\neg c) \\
-	b \leftrightarrow d \\
-	c \leftrightarrow  \\
-	d \leftrightarrow 
-	\end{array}\right\}$ \\ &\\
-	%
-	2c (facts) & 	$CF(P) = \left\{\begin{array}{l}
-	a \leftrightarrow b \lor (\neg c) \\
-	b \leftrightarrow d \\
-	c \leftrightarrow  \\
-	d \leftrightarrow \top
-	\end{array}\right\}$ \\ &\\
-	%
-	2d (no justifcation) & 	$CF(P) = \left\{\begin{array}{l}
-	a \leftrightarrow b \lor (\neg c) \\
-	b \leftrightarrow d \\
-	c \leftrightarrow \bot \\
-	d \leftrightarrow \top
-	\end{array}\right\}$ \\
-\end{tabular}
-\end{center}
-
-To find the supported model of the completion: if the completion contains $\top$s or $\bot$s, start with those, seeing what they imply.
-Write out everything you know from the completion (i.e.\ positive and negative atoms), adding to this set iteratively as the known atoms imply others, and then take the positive atoms as the supported model.
-For the above example:
-\vspace{-.5\baselineskip}
-\begin{center}
-	$\{d, \neg c\} \rightarrow \{d, \neg c, b\} \rightarrow \{d, \neg c, b, a\} = \{a, b, d\}$
-\end{center}
-\vspace{-.5\baselineskip}
-Can also look for odd loops through negation (i.e.\ something like $\{ d \leftrightarrow \neg e, \hspace{3pt}  e \leftrightarrow \neg d \}$, which starts you off with the beginnings of two supported models, one containing $\{d, \neg e\}$ and one $\{e, \neg d\}$). If nothing else, assume one atom and use trial-and-error. If the program contains a loop, there will be one supported model with the loop atoms and one without.
-
-\pagebreak
-
-% ----------------------------------------------------------------------
-
-\subsection{Computing loop formulas}
-\label{subsec:lf}
-
-Given a program $P$ that contains a set of loops $loops(P)$, compute the loop formulas $LF(P)$ (= formulas that forbid a loop from being in a stable model) as follows.
-
-\begin{enumerate}[noitemsep]
-	\item Begin by writing out the disjunction of all atoms involved in each loop, followed by $\rightarrow$, on a new line.
-	\item Using the original program (not the completion):
-	\begin{enumerate}[noitemsep]
-		\item Identify all rules whose heads contain an atom involved in the loop.
-		\item Disqualify any rules if their positive body contains any of the atoms involved in the loop.
-		\item Take the bodies of the remaining rules and form a disjunction out of them, writing this to the right of $\rightarrow$.
-	\end{enumerate}
-\end{enumerate}
-
-For example, for the program $P = \left\{\begin{array}{lll}
-a \leftarrow & b \leftarrow\ \sim a & b \leftarrow c, d\\
-c \leftarrow a, \sim e & d \leftarrow b, c & d \leftarrow e, \sim a\\
-\end{array}\right\}$, which contains $loops(P) = \{ \{b, d\} \}$:
-
-\begin{center}
-	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
-		Step & Loop-formula-in-progress & Rules \\ \midrule
-		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
-		%
-		2a (identify rules) &  & $\begin{array}{l}
-		b \leftarrow\ \sim a\\
-		d \leftarrow b, c\\
-		b \leftarrow c, d\\
-		d \leftarrow e, \sim a
-		\end{array}$  \\ & \\
-		%
-		2b (disqualify rules) &  & $\begin{array}{ll}
-		b \leftarrow\ \sim a & \checkmark \\
-		d \leftarrow \underline{b}, c & \times  \text{ (loop atom in pos body)}\\
-		b \leftarrow c, \underline{d} & \times  \text{ (loop atom in pos body)}\\
-		d \leftarrow e, \sim a & \checkmark
-		\end{array}$  \\ & \\
-		%
-		2c (disjunction) & $b \lor d \rightarrow (\neg a) \lor (e \land \neg a)$
-	\end{tabular}
-\end{center}
-
-\vspace{\baselineskip}
-
-% ----------------------------------------------------------------------
-
-\subsection{Using loop formulas to identify stable models}
-
-To see if a supported model is also a stable model, we can check if the supported model satisfies the implication in the loop formula.
-If yes, then it is a stable model.
-
-\vspace{\baselineskip}
-
-Formally: stable models = $CF(P)\ \cup$ loop formulas.
-
-\vspace{\baselineskip}
-
-For the above example, the supported models of the completion are $\{a, c\}$ and $\{a, c, b, c\}$ (one with the loop atoms and one without).
-
-\begin{center}
-	\begin{tabular}{llp{20cm}}
-	 $\checkmark$ & $\{a, c\}$ & The precondition of the loop formula, $b \lor d$, is false, since neither $b$ nor $d$ is in the model. This makes the implication true. Thus $\{a, c\}$ is a stable model. \\
-	 $\times$ & $\{a, c, b, c\}$ & The precondition of the loop formula is true, since $b$ or $d$ is in the model (in fact, both are). However, the RHS is not fulfilled: we have $\neg e$ (by virtue of $e$ not being in the model) and $a$, while the implication requires $e$ and $\neg a$. Thus the loop formula is not satisfied, so $\{a, c, b, c\}$ is not a stable model.\\
-\end{tabular}
-\end{center}
-
-It is possible for none of the supported models to be stable models if no models satisfy the loop formulas. Then the program has no stable models.
-
-\pagebreak
-
-% ----------------------------------------------------------------------
-
-\subsection{Finding unfounded sets}
-\label{subsec:unf}
-
-abc
-
-% ----------------------------------------------------------------------
-
-\subsection{Using loop formulas on unfounded sets}
-\label{subsec:lf-unf}
-
-abc
-
-% ----------------------------------------------------------------------
-
-\subsection{Computing Fitting Semantics}
-\label{subsec:fitting-sem}
-
-abc
-
-% ----------------------------------------------------------------------
-
-\subsection{Computing Wellfounded Semantics}
-\label{subsec:wellf-sem}
-
-abc
-
-% ----------------------------------------------------------------------
-
-\subsection{Finding nogoods}
-\label{subsec:ng}
-
-abc
-
-% ----------------------------------------------------------------------
-
-\subsection{Using nogoods to do conflict analysis}
-\label{subsec:ng-confl}
-
-abc
-
-
-% ----------------------------------------------------------------------
-
-\pagebreak
 
 \section{Answers to the quiz questions}
 

@@ -318,7 +318,7 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 Using the same method as outlined above for computing loop formulas for the elements of $loops(P)$, loop formulas can also be calculated for unfounded sets.
 Then the formulas are compared to the partial interpretation used to generate the unfounded sets. (Why? Not sure.)
 
-For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\},$ and $\{d\}$, for the program $P = \left\{\begin{array}{lll}
+For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$, for the program $P = \left\{\begin{array}{lll}
 a \leftarrow\ \sim d & b \leftarrow\ \sim a & b \leftarrow d, e\\
 c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 \end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
@@ -326,6 +326,9 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 \begin{center}
 	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
 		Step & Loop-formulas-in-progress & Rules \\ \midrule
+		1 (set-up) & $\varnothing \rightarrow$ & \\
+		2 (empty set) & $\bot \rightarrow \bot$ & \\ \midrule
+		
 		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 		%
 		2a (identify rules) &  & $\begin{array}{l}
@@ -340,7 +343,7 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 		d \leftarrow \underline{b}, c & \times \hspace{8pt} (b = \bot) 
 		\end{array}$  \\ & \\
 		%
-		2c (disjunction) & $b \lor d \rightarrow \ldots ?$ \\ \midrule
+		2c (disjunction) & $b \lor d \rightarrow \bot ?$ \\ \midrule
 		%
 		%
 		%
@@ -382,19 +385,53 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 
 What does this tell us? Why is this useful to do?
 
+\pagebreak
+
 % ----------------------------------------------------------------------
 
 \subsection{Computing Fitting Semantics}
 \label{subsec:fitting-sem}
 
-abc
+A technique for iteratively constructing an interpretation of a program (equivalent to the completion, so resulting in a supported model).
+
+\begin{enumerate}[noitemsep]
+	\item Start with $\Phi^0 \langle \varnothing, \varnothing \rangle = \langle \varnothing, \varnothing \rangle$
+	\item For $\Phi^1$, get facts and atoms with no rules and assign them to the appropriate set in the interpretation.
+	\item For  $\Phi^2$ onward, use the current knowledge in the interpretation to figure out the truth value of further atoms.
+	\item Eventually, either a fixpoint will be reached (the Least Fitting Fixpoint, excluding non-externally-supported loop atoms from the $\top$ set), or all of the atoms involved in the program will be assigned to a truth value in the interpretation. Either way, we can stop at that point, and the atoms that are $\top$ constitute the supported model.
+\end{enumerate}
+
+Stopping once all the atoms are collected is allowed because the Fitting operator is monotonic: can only add to it (as soon as you know an atom is true, it stays true).
+
+For example, given the program $P = \left\{\begin{array}{lll}
+a \leftarrow b, \sim e & b \leftarrow\ \sim c & c \leftarrow\ \sim a \\
+a \leftarrow\ \sim d & c \leftarrow d, \sim e & d \leftarrow
+\end{array}\right\}$, we calculate the Fitting semantics as follows.
+
+\begin{center}
+	$\begin{array}{llll}
+\text{Step} & \text{Fitting-in-progress} & \text{Rules} & \text{Notes} \\ \midrule
+1 & \Phi^0 \langle \varnothing, \varnothing \rangle && \\&\\
+2 & \Phi^1 \langle \{d\}, \{e\} \rangle & d \leftarrow & \text{no rule for}\ e, \text{so can call}\ \bot\\&\\
+3 & \Phi^2 \langle \{d, c\}, \{e\} \rangle & c \leftarrow d, \sim e & \text{only need one rule to call an atom}\ \top \\&\\
+3 & \Phi^3 \langle \{d, c\}, \{e, b\} \rangle & b \leftarrow\ \sim c & \text{no other rules to derive}\ b, \text{so can call}\ \bot \\&\\
+3 & \Phi^4 \langle \{d, c\}, \{e, b, a\} \rangle & \begin{array}{@{}l}
+a \leftarrow b, \sim e\\
+a \leftarrow\ \sim d
+\end{array} & \text{neither rule is usable, so now can safely call}\ a\ \bot \\ &\\
+4 & \text{all atoms used -- done}
+\end{array}$
+\end{center}
+
+Therefore, the supported model of the above program is the true bit of the interpretation: $\{c, d\}$.
+The resulting interpretation does not explicitly exclude non-externally-supported atoms involved in loops, which is why we need Wellfounded Semantics.
 
 % ----------------------------------------------------------------------
 
 \subsection{Computing Wellfounded Semantics}
 \label{subsec:wellf-sem}
 
-abc
+Similar to Fitting Semantics, except that, for the false set in the interpretation, we use the greatest unfounded set, rather than just using those atoms that can't be justified in the program.
 
 % ----------------------------------------------------------------------
 

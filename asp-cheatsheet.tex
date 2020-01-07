@@ -240,7 +240,7 @@ It is possible for none of the supported models to be stable models if no models
 
 % ----------------------------------------------------------------------
 
-\subsection{Finding unfounded sets}
+\subsection{Finding the Greatest Unfounded Set and all unfounded sets}
 \label{subsec:unf}
 
 Find all unfounded sets of a program $P$ wrt a partial interpretation $\langle \{\top\}, \{\bot\} \rangle$ as follows:
@@ -397,7 +397,7 @@ A technique for iteratively constructing an interpretation of a program (equival
 \begin{enumerate}[noitemsep]
 	\item Start with $\Phi^0 \langle \varnothing, \varnothing \rangle = \langle \varnothing, \varnothing \rangle$
 	\item For $\Phi^1$, get facts and atoms with no rules and assign them to the appropriate set in the interpretation.
-	\item For  $\Phi^2$ onward, use the current knowledge in the interpretation to figure out the truth value of further atoms.
+	\item For  $\Phi^n (n>1)$, use the current knowledge in the interpretation to figure out the truth value of further atoms.
 	\item Eventually, either a fixpoint will be reached (the Least Fitting Fixpoint, excluding non-externally-supported loop atoms from the $\top$ set), or all of the atoms involved in the program will be assigned to a truth value in the interpretation. Either way, we can stop at that point, and the atoms that are $\top$ constitute the supported model.
 \end{enumerate}
 
@@ -406,7 +406,7 @@ Stopping once all the atoms are collected is allowed because the Fitting operato
 For example, given the program $P = \left\{\begin{array}{lll}
 a \leftarrow b, \sim e & b \leftarrow\ \sim c & c \leftarrow\ \sim a \\
 a \leftarrow\ \sim d & c \leftarrow d, \sim e & d \leftarrow
-\end{array}\right\}$, we calculate the Fitting semantics as follows.
+\end{array}\right\}$, we calculate the Fitting Semantics as follows.
 
 \begin{center}
 	$\begin{array}{llll}
@@ -419,24 +419,128 @@ a \leftarrow\ \sim d & c \leftarrow d, \sim e & d \leftarrow
 a \leftarrow b, \sim e\\
 a \leftarrow\ \sim d
 \end{array} & \text{neither rule is usable, so now can safely call}\ a\ \bot \\ &\\
-4 & \text{all atoms used -- done}
+4 & \text{total interpretation -- done}
 \end{array}$
 \end{center}
 
 Therefore, the supported model of the above program is the true bit of the interpretation: $\{c, d\}$.
-The resulting interpretation does not explicitly exclude non-externally-supported atoms involved in loops, which is why we need Wellfounded Semantics.
+The resulting interpretation does not explicitly exclude the loop atoms without external support, which is why we need Wellfounded Semantics.
 
 % ----------------------------------------------------------------------
 
 \subsection{Computing Wellfounded Semantics}
 \label{subsec:wellf-sem}
 
-Similar to Fitting Semantics, except that, for the false set in the interpretation, we use the greatest unfounded set, rather than just using those atoms that can't be justified in the program.
+Similar to Fitting Semantics, except that, for the false set in the interpretation, we use the greatest unfounded set (GUS), rather than just using those atoms that can't be justified in the program in each iteration.
+Loop atoms without any external support are contained in the GUS.
+
+\begin{enumerate}[noitemsep]
+	\item Start with $\Omega^0 \langle \varnothing, \varnothing \rangle = \langle \varnothing, \varnothing \rangle$
+	\item For $\Omega^1$:
+	\begin{enumerate}[noitemsep]
+		\item $\top$ set: fill with facts from the program.
+		\item $\bot$ set: compute the GUS wrt knowing that whatever atoms are in the $\top$ set so far are true (i.e.\ (1) remove rules containing negated atoms in the $\top$ set, (2) remove any remaining negated atoms, (3) compute the minimal model of this reduct, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set; see above)
+	\end{enumerate}
+	\item For $\Omega^n (n>1)$:
+	\begin{enumerate}[noitemsep]
+		\item $\top$ set: add whatever new atoms can now be derived from the program, knowing the partial interpretation in $\Omega^{n-1}$.
+		\item $\bot$ set: compute the GUS wrt the $\top$ set in $\Omega^n$ and the $\bot$ set in $\Omega^{n-1}$ (i.e.\ (1) remove rules containing negated atoms in the $\top$ set or positive atoms in the $\bot$ set, (2) remove any remaining negated atoms, (3) compute minimal model, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set for  $\Omega^{n}$)
+	\end{enumerate}	
+	\item Repeat until you either reach a fixpoint (the partial interpretation that goes in is the same as what comes out) or or a total interpretation (all atoms in the program appear in the interpretation).
+\end{enumerate}
+
+\pagebreak
+
+For example, given the program $P = \left\{\begin{array}{lll}
+a \leftarrow b, \sim f & b \leftarrow a, c & d \leftarrow\ \sim f\\
+a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
+\end{array}\right\}$ (note that $loop(P) = \{ \{a, b \} \}$), we calculate the Wellfounded semantics as follows.
+
+\begin{center}
+	\begin{tabular}{p{5cm}p{5cm}p{7cm}}
+		Step & Wellfounded-in-progress & GUS-in-progress\\ \midrule
+		%
+		WS 1
+		& $\Omega^0 \langle \varnothing, \varnothing \rangle$ &\\ \midrule
+		%
+		%
+		%
+		WS 2a (add facts (none, so $\varnothing$))
+		& $\Omega^1 \langle \varnothing, \text{GUS wrt}\ \varnothing \rangle$ &\\&\\
+		%
+		WS 2b / GUS 1 (remove incompatible rules (none for $\varnothing$)) 
+		&
+		& $P = \left\{\begin{array}{lll}
+		a \leftarrow b, \sim f & b \leftarrow a, c & d \leftarrow\ \sim f\\
+		a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
+		\end{array}\right\}$ \\ &\\
+		%
+		WS 2b / GUS 2 (rm neg atoms to get reduct) 
+		& 
+		& $P = \left\{\begin{array}{lll}
+		a \leftarrow b, \msout{\sim f} & b \leftarrow a, c & d \leftarrow\ \msout{\sim f}\\
+		a \leftarrow e & c \leftarrow d, \msout{\sim e} & e \leftarrow f
+		\end{array}\right\}$  \\ &\\
+		%
+		WS 2b / GUS 3 (minimal model) 
+		& 
+		& $\{ d, c \}$ \\ &\\
+		%
+		WS 2b / GUS 4 (complement wrt $A$) 
+		&
+		&  $\{a, b, c, d, e, f\} \backslash \{d, c\} = \{a, b, e, f\} = $ GUS  \\&\\
+		%
+		WS 2
+		& $\Omega^1 \langle \varnothing, \{a, b, e, f\} \rangle$ &\\ \midrule
+		%
+		%
+		WS 3a (add derivable atoms knowing $\Omega^1$) 
+		& $\Omega^2 \langle \{c, d\}, \{a, b, e, f\} \rangle$ &\\&\\
+		%
+		WS 3b / GUS 1 (remove incompatible rules) 
+		&
+		& $P = \left\{\begin{array}{lll}
+		\msout{a \leftarrow b, \sim f} & \msout{b \leftarrow a, c} & d \leftarrow\ \sim f\\
+		\msout{a \leftarrow e} & c \leftarrow d, \sim e & \msout{e \leftarrow f}
+		\end{array}\right\}$ \\ &\\
+		%
+		WS 3b / GUS 2 (rm neg atoms to get reduct) 
+		& 
+		& $P = \left\{\begin{array}{lll}
+		\msout{a \leftarrow b, \sim f} & \msout{b \leftarrow a, c} & d \leftarrow\ \msout{\sim f}\\
+		\msout{a \leftarrow e} & c \leftarrow d, \msout{\sim e} & \msout{e \leftarrow f}
+		\end{array}\right\}$ \\ &\\
+		%
+		WS 3b / GUS 3 (minimal model) 
+		& 
+		& $\{ d, c \}$ \\ &\\
+		%
+		WS 3b / GUS 4 (complement wrt $A$) 
+		&
+		&  $\{a, b, c, d, e, f\} \backslash \{d, c\} = \{a, b, e, f\} = $ GUS  \\&\\
+		%
+		WS 3 
+		& $\Omega^2 \langle \{c, d\}, \{a, b, e, f\} \rangle$& \\ \midrule
+		WS 4 & total interpretation -- done & \\ \midrule
+	\end{tabular}
+\end{center}
+
+We reached a total interpretation (i.e.\ all atoms in the program are contained in the interpretation), so we are done.
+This derivation tells us that the $\top$ set, $\{c, d\}$, is a \textbf{stable model} of this program, because there is acyclic support for all atoms in the $\top$ set, and all atoms for which there is no (acyclic) support are in the $\bot$ set (including $a$ and $b$, which constitute a loop. The Fitting semantics would not have been able to put those two into the $\bot$ set).
+
+\pagebreak
 
 % ----------------------------------------------------------------------
 
 \subsection{Finding nogoods}
 \label{subsec:ng}
+
+\textbf{For a tight program}
+
+abc
+
+\vspace{\baselineskip}
+\textbf{For a non-tight program}
 
 abc
 
@@ -707,6 +811,13 @@ Facts
 	b. \newline
 	---------- \newline
 	\{ a, b \} } &\\ \midrule
+
+
+Fitting Semantics $\Phi$
+& A program's completion in the form of an operator (as such, Fitting Semantics results in supported models in the form of an interpretation, formatted like $\langle \{\top\}, \{\bot\} \rangle$) where the stuff in $\{\top\}$ is a supported model.
+If the program is tight, i.e.\ there are no loops, then the stuff in $\{\top\}$ is also a stable model.
+If the program is not tight, then Fitting Semantics can't be used to determine the stable model; need Wellfounded Semantics instead.
+&& (walkthrough in \ref{subsec:fitting-sem}) &\\ \midrule
 
 
 Interpretation
@@ -991,6 +1102,10 @@ Computed by subtracting the minimal model of the program's reduct wrt some parti
 && (walkthrough in \ref{subsec:unf})  &\\ \midrule
 	
 
+Wellfounded Semantics $\Omega$
+& Uses the greatest unfounded set to determine the stable model of a program by identifying the atoms that are acyclically supportable in a program and (the important ability) identifying the atoms that are not acyclically supportable, including those in loops. 
+Also in the form of $\langle \{\top\}, \{\bot\} \rangle$, where $\{\top\}$ is a stable model and $\{\bot\}$ is the set of atoms that are not acyclically derivable.
+&& (walkthrough in \ref{subsec:wellf-sem}) &\\ \midrule
 
 
 
@@ -1010,22 +1125,22 @@ Computed by subtracting the minimal model of the program's reduct wrt some parti
 
 
 
-Fitting Semantics $\Phi$
-& A program's completion in the form of an operator (as such, Fitting Semantics results in supported models in the form of an interpretation, formatted like $\langle \{\top\}, \{\bot\} \rangle$) where the stuff in $\{\top\}$ is the supported model.
-To get stable models from this output, somehow remove the unfounded sets from this?
 
-&& -- &\\ \midrule
-
-Wellfounded Semantics $\Omega$
-& a
-&& -- &\\ \midrule
 
 
 Nogoods
-& a
-&& -- &\\ \midrule
+& Sets of assignments of truth values to certain atoms that cannot all hold at the same time.
+There are head and body nogoods that pertain to different parts of all rules in the program (e.g.\ the head cannot be true if the disjunct of all of its bodies is false), and other different types of nogoods: $\Delta$ deals with the supported model and $\delta$ takes care of loop formulas (e.g.\ says atoms cannot be true if all external supports are false).
+Find completion first and derive nogoods from that.
+&& (walkthrough in \ref{subsec:ng}) &\\ \midrule
 
+Unit propagation
+& 
+&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
 
+Conflict analysis
+& 
+&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
 %	
 \end{longtable}
 

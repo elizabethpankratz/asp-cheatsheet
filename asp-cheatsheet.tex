@@ -550,11 +550,11 @@ Finding nogoods for a program $P$ involves definitely finding $\Delta_P$, the co
 First take completion, and use that to compute the following.
 
 \begin{center}
-	\begin{tabular}{rll}
-	$\Delta_P =$ 	& $\{ \{ \ngfa{\text{head}}, \ngtb{\text{body}} \},$ & (per rule) \\
-					& $\{ \ngta{\text{head}}, \ngtb{\text{body 1}}, \ngtb{\text{body n}} \},$ & (containing bodies of all rules sharing a head) \\
-					& $\{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \},$ & (per atom in each body)\\
-					& $\{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \}$ & (containing all atoms in one body)
+	\begin{tabular}{lrll}
+	(1) & $\Delta_P =$ 	& $\{ \{ \ngfa{\text{head}}, \ngtb{\text{body}} \},$ & (per rule in program) \\
+	(2) &				& $\{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \},$ & (per head, containing bodies of all rules sharing a head) \\
+	(3) &				& $\{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \},$ & (per body per atom)\\
+	(4) &				& $\{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \}$ & (per body, containing all atoms in one body)
 \end{tabular}
 \end{center}
 
@@ -584,6 +584,83 @@ First determine the loop formulas of form: $\text{loop atom 1} \lor \text{loop a
 \end{center}
 
 Here, even if a support body atom is negated, can't change $\ngfb{\sim \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.
+
+\vspace{\baselineskip}
+
+For example, given the program $P = \left\{\begin{array}{lll}
+a \leftarrow c & b \leftarrow d, \sim c & d \leftarrow\ \sim a\\
+a \leftarrow\ \sim b & c \leftarrow a, d & d \leftarrow c
+\end{array}\right\}$ (note that $loop(P) = \{ \{a, c\}, \{c, d\}, \{a, c, d\} \}$):
+
+For $\Delta_P$, first take the completion.
+
+\begin{center}
+	$CF(P) = \left\{\begin{array}{l}
+a \leftrightarrow c \lor (\neg b) \\
+b \leftrightarrow d \land \neg c \\
+c \leftrightarrow a \land d \\
+d \leftrightarrow (\neg a) \lor c
+\end{array}\right\}$
+\end{center}
+
+\pagebreak
+
+Then:
+
+\begin{center}
+	$\begin{array}{rlll}
+		\Delta_P = & \{ \{ \ngfa{a}, \ngtb{c} \}, & (1)\ a \leftrightarrow c \lor (\neg b) & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngfa{a}, \ngtb{\sim b} \}, & (1) & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{a}, \ngfb{c}, \ngfb{\sim b} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{c}, \ngfa{c} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{c}, \ngta{c} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
+		& \{ \ngtb{\sim b}, \ngfa{\sim b} \} = \{ \ngtb{\sim b}, \ngta{b} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{\sim b}, \ngta{\sim b} \} = \{ \ngfb{\sim b}, \ngfa{b} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
+		%
+		& \{ \ngfa{b}, \ngtb{d, \sim c} \}, & (1)\ b \leftrightarrow d \land \neg c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{b}, \ngfb{d, \sim c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{d, \sim c}, \ngfa{d} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngtb{d, \sim c}, \ngfa{\sim c} \} = \{ \ngtb{d, \sim c}, \ngta{c} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{d, \sim c}, \ngta{d}, \ngta{\sim c} \} = \{ \ngfb{d, \sim c}, \ngta{d}, \ngfa{c} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
+		%
+		& \{ \ngfa{c}, \ngtb{a, d} \}, & (1)\ c \leftrightarrow a \land d  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{c}, \ngfb{a, d} \}, & (2)  & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{a, d}, \ngfa{a} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngtb{a, d}, \ngfa{d} \}, & (3)  & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{a, d}, \ngta{a}, \ngta{d} \}, & (4)  & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
+		%
+		& \{ \ngfa{d}, \ngtb{\sim a} \}, & (1)\ d \leftrightarrow (\neg a) \lor c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngfa{d}, \ngtb{c} \}, & (1)  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{d}, \ngfb{\sim a}, \ngfb{c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{\sim a}, \ngfa{\sim a} \} = \{ \ngtb{\sim a}, \ngta{a} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{\sim a}, \ngta{\sim a} \} = \{ \ngfb{\sim a}, \ngfa{a} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
+		& \{ \ngtb{c}, \ngfa{c} \}, & (3)\ \text{(duplicate)} & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{c}, \ngta{c} \} \} & (4)\ \text{(duplicate)} & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
+	\end{array}$
+\end{center}
+
+For $\delta_P$, first find the loop formulas for $loop(P) = \{ \{a, c\}, \{c, d\}, \{a, c, d\} \}$ (see \ref{subsec:lf} for the procedure).
+
+\begin{center}
+	$LF(P) = \left\{\begin{array}{l}
+	a \lor c \rightarrow \neg b \\
+	c \lor d \rightarrow \neg a \\
+	a \lor c \lor d \rightarrow (\neg a) \lor (\neg b)
+	\end{array}\right\}$
+\end{center}
+
+Then:
+\begin{center}
+	$\begin{array}{rlll}
+	\delta_P = 	& \{ \{ \ngta{a}, \ngfb{\sim b} \}, && a \lor c \rightarrow \neg b \\
+				& \{ \ngta{c}, \ngfb{\sim b} \}, && \\ &\\
+				& \{ \ngta{c}, \ngfb{\sim a} \}, && c \lor d \rightarrow \neg a \\
+				& \{ \ngta{d}, \ngfb{\sim a} \}, && \\ &\\
+				& \{ \ngta{a}, \ngfb{\sim a}, \ngfb{\sim b} \}, && a \lor c \lor d \rightarrow (\neg a) \lor (\neg b) \\
+				& \{ \ngta{c}, \ngfb{\sim a}, \ngfb{\sim b} \}, && \\			
+				& \{ \ngta{d}, \ngfb{\sim a}, \ngfb{\sim b} \} \} && \\		
+	\end{array}$
+\end{center}
 
 % ----------------------------------------------------------------------
 

@@ -23,6 +23,13 @@
 
 \newcommand{\msout}[1]{\text{\sout{$#1$}}}
 
+\newcommand{\ngtb}[1]{T_{ \{#1\} }}
+\newcommand{\ngfb}[1]{F_{ \{#1\} }}
+\newcommand{\ngta}[1]{T_{#1}}
+\newcommand{\ngfa}[1]{F_{#1}}
+
+%An atom that must be true is formatted like $\ngta{}$, a body that must be true $\ngtb{}$, an atom that must be false, like $\ngfa{}$, and a body that must be false $\ngfb{}$.
+
 \setlength\parindent{0pt}
 
 \begin{document}
@@ -535,14 +542,48 @@ This derivation tells us that the $\top$ set, $\{c, d\}$, is a \textbf{stable mo
 \subsection{Finding nogoods}
 \label{subsec:ng}
 
-\textbf{For a tight program}
-
-abc
+Finding nogoods for a program $P$ involves definitely finding $\Delta_P$, the completion nogoods, and if the program contains loops, additionally finding $\delta_P$, the loop nogoods (unnecessary for a tight program, since then $\Delta_P = \Delta_P \cup \delta_P$).
 
 \vspace{\baselineskip}
-\textbf{For a non-tight program}
+\textbf{Completion nogoods $\Delta_P$:}
 
-abc
+First take completion, and use that to compute the following.
+
+\begin{center}
+	\begin{tabular}{rll}
+	$\Delta_P =$ 	& $\{ \{ \ngfa{\text{head}}, \ngtb{\text{body}} \},$ & (per rule) \\
+					& $\{ \ngta{\text{head}}, \ngtb{\text{body 1}}, \ngtb{\text{body n}} \},$ & (containing bodies of all rules sharing a head) \\
+					& $\{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \},$ & (per atom in each body)\\
+					& $\{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \}$ & (containing all atoms in one body)
+\end{tabular}
+\end{center}
+
+If an atom in the body is negated, then $\ngfa{\sim \text{body atom}} = \ngta{\text{body atom}}$, and vice versa.
+
+For facts:, i.e.\ $a \leftrightarrow \top$:
+\begin{align*}
+\Delta (a) = & \{ \{ \ngfa{a}, \ngta{\varnothing} \}, \{ \ngta{a}, \ngfa{\varnothing} \} \} \\
+\Delta (\{\varnothing\}) = & \{ \{ \ngfa{\varnothing} \} \}
+\end{align*}
+
+For unprovable atoms (those not appearing in heads), i.e.\ $b \leftrightarrow \bot$ (no body noogods because no body):
+\begin{align*}
+\Delta (b) = & \{ \{ \ngta{b} \} \} \\
+\end{align*}
+
+\vspace{\baselineskip}
+\textbf{Loop nogoods $\delta_P$:}
+ 
+First determine the loop formulas of form: $\text{loop atom 1} \lor \text{loop atom m} \rightarrow \text{support body}$.
+
+\begin{center}
+	\begin{tabular}{rl}
+		$\delta_P =$ 	& $\{ \{ \ngta{\text{loop atom 1}}, \ngfb{\text{support body atom 1}}, \ngfb{\text{support body atom n}} \},$ \\
+						& $\{ \ngta{\text{loop atom m}}, \ngfb{\text{support body atom 1}}, \ngfb{\text{support body atom n}} \} \}$ \\
+	\end{tabular}
+\end{center}
+
+Here, even if a support body atom is negated, can't change $\ngfb{\sim \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.
 
 % ----------------------------------------------------------------------
 
@@ -963,6 +1004,15 @@ Negation \newline (Ex.\ 1 Part 1: 1.2, 1.3)
 	\{ a, c \}} \\ \midrule
 
 
+Nogoods
+& Sets of assignments of truth values to certain atoms that cannot all hold at the same time.
+An atom that must be true is formatted like $\ngta{a}$, a body that must be true $\ngtb{a}$, an atom that must be false $\ngfa{a}$, and a body that must be false $\ngfb{a}$.
+
+The set of $\Delta$ nogoods (completion nogoods) deals with the supported model. This set contains head and body nogoods and is based on the completion.
+The set of $\delta$ nogoods (loop nogoods) is based on the loop formulas and ensures external support for atoms in loops.
+Nogoods are used for conflict analysis and backjumping.
+&& (walkthrough in \ref{subsec:ng}) &\\ \midrule
+
 Optimisation: maximise, minimise \newline (Ex.\ 1 Part 2 1.5)
 & Optimisation lets us choose between several stable models to find one that meets a particular condition. The \texttt{\#maximize} and \texttt{\#minimize} directives do the same thing as the \texttt{\#sum} directive above, but with one more step: they calculate the sums for all stable models and only let those models through into the final answer that have the largest (for \texttt{\#maximize}) or smallest (for \texttt{\#minimize}) sum. \newline
 
@@ -1128,11 +1178,7 @@ Also in the form of $\langle \{\top\}, \{\bot\} \rangle$, where $\{\top\}$ is a 
 
 
 
-Nogoods
-& Sets of assignments of truth values to certain atoms that cannot all hold at the same time.
-There are head and body nogoods that pertain to different parts of all rules in the program (e.g.\ the head cannot be true if the disjunct of all of its bodies is false), and other different types of nogoods: $\Delta$ deals with the supported model and $\delta$ takes care of loop formulas (e.g.\ says atoms cannot be true if all external supports are false).
-Find completion first and derive nogoods from that.
-&& (walkthrough in \ref{subsec:ng}) &\\ \midrule
+
 
 Unit propagation
 & 

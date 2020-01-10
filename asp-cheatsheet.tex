@@ -664,10 +664,78 @@ Then:
 
 % ----------------------------------------------------------------------
 
-\subsection{Using nogoods to do conflict analysis}
+\subsection{Determining unit-resulting or violated nogoods}
+\label{subsec:ng-viol}
+
+To see if any nogoods of a program are unit-resulting wrt a particular assignment, look to see if there are any nogoods for which that assignment corresponds to all but one of the elements.
+If there is only one element left over, then the opposite of that element must hold (see unit propagation below), so that nogood is unit-resulting.
+Violated nogoods are those where all elements hold wrt a given assignment.\\
+
+If the assignment contains several nogoods, then only one of the contained elements needs to be in any given nogood for that nogood to be worth looking at, i.e.\ the nogood doesn't need to contain every element in the assignment.\\
+
+For example, given the nogoods above:
+
+\begin{center}
+	$\begin{array}{lll}
+	\text{Assignments} & \text{Unit-resulting nogoods (underline indicates $\in A$)} & \text{Violated nogoods}\\ \midrule
+	A = () & - & - \\[.5em]
+	A = (\ngta{c}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, \sim c}, \underline{\ngta{c}}\}, \{\underline{\ngta{c}}, \ngfb{a, d}\} & -\\[.5em]
+	A = (\ngta{a}, \ngfb{\sim a}, \ngta{d}) & \{\ngfb{a, d}, \underline{\ngta{a}}, \underline{\ngta{d}}\}, \{\underline{\ngta{d}}, \underline{\ngfb{\sim a}}, \ngfb{c}\}, \{\ngta{b}, \underline{\ngfb{\sim a}}\}, \{\ngta{c}, \underline{\ngfb{\sim a}}\} & \{\underline{\ngta{d}}, \underline{\ngfb{\sim a}}\} \\
+\end{array}$
+\end{center}
+
+% ----------------------------------------------------------------------
+
+\subsection{Using nogoods for conflict analysis}
 \label{subsec:ng-confl}
 
-abc
+The basic method of conflict-driven nogood learning (CDNL-ASP) involves a lot of guessing-and-checking.
+
+\vspace{\baselineskip}
+\textbf{Identifying a conflict nogood using NogoodPropagation($P, \varnothing, A$)}
+
+To reach a conflict by unit propagation:
+
+\begin{enumerate}
+	\item Choose some literal to have some truth value---this is your ``decision literal'' at ``decision level'' 1.
+	\item Look at your nogoods to see if this choice results in unit propagation, i.e.\ if your decision literal is one of two elements in a nogood.
+	\begin{enumerate}
+		\item If no: choose a better decision literal.
+		\item If yes: see which ``implied nogoods'' are unit-propagated from nogoods containing your decision literal, and then keep checking to see which nogoods are further implied by the growing inventory of decided and implied truth assignments. 
+		Continue until no more unit propagation can happen at the current decision level.
+		(Also, apparently should look at see if true assignments are in a loop, but I can't remember why...)
+	\end{enumerate}
+	\item Randomly choose some other literal to have some truth value---this is the decision literal at decision level 2.
+	\item Again, look at your nogoods to see how your inventory of truth assignments from decision level 1 as well as the new decision literal propagate.
+	\item Repeat until there is some nogood implied by your working assignment that results in an assignment that conflicts with one you already have, e.g.\ if you already know $\ngtb{a, e}$, but some unit-propagating nogood requires $\ngfb{a, e}$.
+	This means that the current decision literal is incompatible with the one that produced the old truth assignment involved in the conflict.
+\end{enumerate}
+
+[example]
+
+\vspace{\baselineskip}
+\textbf{Resolution for finding a unit-propagating conflict nogood at the smaller decision level}
+
+Now that we've found a conflict, we want to jump back up to the decision level that contains the earlier nogood that's involved in the current conflict and use our new knowledge about what is not possible in the model to follow a different path from that point.
+This involves using a resolution technique to derive a conflict nogood that contains only one undefined element of the decision level with the earlier nogood.
+When we jump back to that earlier decision level, we can then use this new conflict nogood to continue unit propagation where we had reached a dead end before.
+
+The resolution technique says:
+\begin{enumerate}
+	\item Start with the first conflict nogood $\epsilon$, the one that unit-propagates to the truth assignment that conflicts with one we already know. 
+	\item Find the nogood on the current decision level that implied that one, i.e.\ the one that brought the $\epsilon$ to its unit-resulting status, filling in the second-last element. 
+	There will be one element contained that has the opposite truth value of the element in $\epsilon$.
+	\item ``Resolve'' those two by merging them and deleting both instances of the element that is true in one and false in the other.
+	What results is a new conflict nogood, $\delta' = \delta$.
+	\item Now, look for another nogood that unit-propagated to give one of the elements in the new conflict nogood.
+	That element should exist in true and false versions between the new conflict nogood and the nogood you will find.
+	Resolve those two again to get a new conflict nogood.
+	\item Continue the process until a nogood $\delta$ with exactly one literal from the current decision level is obtained (all other literals having been either decided or implied on earlier decision levels).
+	\item Take this new nogood with exactly one undefined literal and backjump to the decision level where the conflict first arose (unbeknownst to us then).
+	This new nogood $\delta$ will allow further unit propagation at that decision level, continuing on from the stage where we had to stop before, since we had run out of nogoods.
+\end{enumerate}
+
+[example]
 
 
 % ----------------------------------------------------------------------
@@ -1227,7 +1295,12 @@ Unfounded set, greatest
 & aka GUS. The union of all unfounded sets.
 Computed by subtracting the minimal model of the program's reduct wrt some partial interpretation from the set of all atoms.
 && (walkthrough in \ref{subsec:unf})  &\\ \midrule
-	
+
+
+Unit propagation
+& Recall that a nogood says that it cannot be the case that all of its elements (all of the truth conditions) hold.
+Therefore, during conflict analysis, if all but one conditions of a nogood are fulfilled by a model (e.g.\ given the nogood $\{\ngta{a}, \ngfb{b}\}$, if we  know that $\ngfb{b}$ but we don't know whether $a$ is true or false), then we must assume the opposite of what the remaining condition tells us (e.g.\ we must assume $\ngfa{a}$), since it cannot be the case that both $\ngta{a}, \ngfb{b}$ hold. We already know that $\ngfb{b}$ holds, so the other one cannot hold.
+&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
 
 Wellfounded Semantics $\Omega$
 & Uses the greatest unfounded set to determine the stable model of a program by identifying the atoms that are acyclically supportable in a program and (the important ability) identifying the atoms that are not acyclically supportable, including those in loops. 
@@ -1257,9 +1330,6 @@ Also in the form of $\langle \{\top\}, \{\bot\} \rangle$, where $\{\top\}$ is a 
 
 
 
-Unit propagation
-& 
-&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
 
 Conflict analysis
 & 

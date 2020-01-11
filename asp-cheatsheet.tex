@@ -51,9 +51,7 @@
 
 \subsection{Tips for determining stable models of normal programs}
 
-If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation, then start by assuming that the heads of negative rules are true and looking for what that implies. 
-
-Also, atoms in stable models don't need to touch all rules---they can leave some of the rules untouched and that's fine. All they need is for every atom in the stable model to be justified in the program, not the other way around.
+If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation (i.e.\ $1\{a, b\}1$ or $\{a \leftarrow {\sim} b, b \leftarrow {\sim} a\}$), then start by assuming that the heads of negative rules are true and looking for what that implies.\\
 
 \vspace{\baselineskip}
 
@@ -62,7 +60,7 @@ Also, atoms in stable models don't need to touch all rules---they can leave some
 \subsection{Computing the reduct}
 \label{subsec:reduct}
 
-To compute the reduct $P^X$ of a set $X$ for a program $P$, just follow these two!\ easy!\ steps!
+To compute the reduct $P^X$ wrt a set of atoms $X$ for a program $P$:
 
 \begin{enumerate}[noitemsep]
 	\item Remove all rules in $P$ whose bodies contain one or more negative atoms whose positive counterparts are contained in $X$.
@@ -118,10 +116,10 @@ Given a program $P$, compute the completion $CF(P)$ as follows.
 
 For example, given the program $P = \left\{\begin{array}{l}
 a \leftarrow b \\
-a \leftarrow \neg c \\
+a \leftarrow {\sim} c \\
 b \leftarrow d\\
 d \leftarrow 
-\end{array}\right\}$, the completion is computed as shown.
+\end{array}\right\}$:
 
 \begin{center}
 	\begin{tabular}{p{3cm}p{5cm}}
@@ -325,8 +323,12 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \subsection{Using loop formulas on unfounded sets}
 \label{subsec:lf-unf}
 
+Apparently we can do this. I don't know why or what good it does.\\
+
+
 Using the same method as outlined above for computing loop formulas for the elements of $loops(P)$, loop formulas can also be calculated for unfounded sets.
-Then the formulas are compared to the partial interpretation used to generate the unfounded sets. (Why? Not sure.)
+Then the formulas are compared to the partial interpretation used to generate the unfounded sets.\\
+
 
 For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$, for the program $P = \left\{\begin{array}{lll}
 a \leftarrow {\sim} d & b \leftarrow {\sim} a & b \leftarrow d, e\\
@@ -760,7 +762,7 @@ The beginning of a derivation is in the following table, formatted as in the exe
 \end{tabular}
 \end{center}
 
-Note: Some lambda notation is also used in the exercises for the conflict nogood, don't know what it means: $\{ \ngta{a}, \ngfb{{\sim} b, {\sim} e}, \ngfb{{\sim} b, {\sim} g} \} = \lambda(a, \{a, f\})$.
+Note: Some lambda notation is also used in the exercises for the conflict nogood, don't know what it means but here it is just in case: $\{ \ngta{a}, \ngfb{{\sim} b, {\sim} e}, \ngfb{{\sim} b, {\sim} g} \} = \lambda(a, \{a, f\})$.
 
 
 
@@ -774,7 +776,7 @@ Now that we've found a conflict, we want to jump back up to the decision level t
 This involves using a resolution technique to get from the conflict nogood we just found, $\varepsilon$, to a new conflict nogood, $\delta$, that contains only one element that is undefined at the earliest decision level involved in the conflict.
 When we jump back to that earlier decision level, we can then use $\delta$ to continue unit propagation where we had reached a dead end before.\\
 
-(Note: The variables $\varepsilon$ and $\delta$ are used kind of weirdly in the exercises, and also there's a $\delta'$? Anyway, the important thing is that the original $\varepsilon$ is the original conflict nogood, and that the final $\delta$ is the nogood that can be applied to the earliest decision level involved in the conflict.)\\
+(Note: The variables $\varepsilon$ and $\delta$ are used kind of weirdly in the exercises, and also there's a $\delta'$? Anyway, the important thing seems to be that the original $\varepsilon$ is the original conflict nogood, and that the final $\delta$ is the nogood that can be applied to the earliest decision level involved in the conflict.)\\
 
 The resolution technique says:
 \begin{enumerate}[noitemsep]
@@ -791,7 +793,7 @@ The resolution technique says:
 	This new nogood $\delta$ will allow further unit propagation at that decision level, continuing on from the stage where we had to stop before, since we had run out of nogoods.
 \end{enumerate}
 
-Continuing the example above (on the top left is the original conflict nogood; on the right is the nogood that unit-propagated to the grey assignment in the left one; grey literals indicate those that have to be removed when merged; underlined literals are those on the current decision layer (recall that we stop the iteration once there is only one literal of the current decision layer)):
+Continuing the example above (on the top left is the original conflict nogood; on the right is the nogood used to unit-propagate the grey assignment in the left one; grey literals indicate those that have to be removed when merged; underlined literals are those on the current decision layer (recall that we stop the iteration once there is only one literal of the current decision layer)):
 
 \begin{center}
 	\begin{forest}
@@ -812,10 +814,14 @@ Continuing the example above (on the top left is the original conflict nogood; o
 	\end{forest}
 \end{center}
 
+Now, armed with the new nogood $\delta = \{ \ngta{a}, \ngta{e} \}$, we jump back up to decision level 1, where all we knew was $\ngta{a}$.
+Because there's only one element in $\delta$ that we don't know, namely $\ngta{e}$, we can unit-propagate: infer $\ngfa{e}$ and continue on our merry way (until we find another conflict and are doomed to repeat this whole thing again).
 
 % ----------------------------------------------------------------------
 
 \pagebreak
+
+\renewcommand{\arraystretch}{1}
 	
 \section{Glossary: Concepts, constructs, and notation}
 
@@ -1007,6 +1013,11 @@ This is analogous to implications in logic -- if the precondition is false, it d
 
 \\ \midrule
 
+Conflict analysis
+& An algorithm for figuring out which atoms in a program are true and which are false by making some assumptions and seeing what they imply; if they imply something that conflicts with assumptions you've already made, then you ``backjump'' up to where the conflict started and use your new knowledge about disallowed combinations of assumptions to pursue a different path through the ``search tree'' of possible truth assignments.
+&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
+
+
 Constants
 & The \texttt{\#const} directive lets you choose a constant (conventionally written in lowercase letters) as a placeholder for a particular value.
 && \texttt{%
@@ -1055,15 +1066,32 @@ On the other hand, if several different constraints contain those atoms, then th
 
 Dependency graph $G(P)$
 & Given a rule in a program, draw a directed edge in a graph going in the same direction as in the rule, from the atom(s) in the rule's positive body to the atom in the rule's head.
-For example, given $a \leftarrow b, {\sim} e$, remove the negative body and draw an arrow from $b$ to $a$ on the graph.
-Do this for all rules to create the graph of the program, $G(P)$ (a.k.a.\ positive dependency graph).
-Can be used to quickly identify loops.
+For example, given $d \leftarrow e, {\sim} a$, remove the negative part of the body and draw an arrow from $e$ to $d$ on the graph.
+Do this for all rules to create the graph of the program, $G(P)$ (a.k.a.\ the positive dependency graph).
+Can be used to quickly identify loops, because the the arrow goes in both directions, e.g.\ between $b$ and $d$ at right.
 && 
 $\left\{\begin{array}{ll}
 a \leftarrow & b \leftarrow c, d\\
 c \leftarrow a, {\sim} e & d \leftarrow b, c \\
 b \leftarrow {\sim} a & d \leftarrow e, {\sim} a
-\end{array}\right\}$  &  \\ \midrule
+\end{array}\right\}$  & 
+
+\begin{tikzpicture}[baseline=(e)]
+\tikzstyle{state}=[shape=circle,draw,minimum size=0.4cm]
+
+\node[state] (a) {$a$};
+\node[state, below right of = a] (b) {$b$};
+\node[state, below of = b] (c) {$c$};
+\node[state, below left of = a](0,0) (e) {$e$};
+\node[state, below of = e](0,0) (d) {$d$};
+
+\path[->,draw] (a) edge (c);
+\path[->,draw] (c) edge (b);
+\path[->,draw] (b) edge (d);
+\path[->,draw] (d) edge (b);
+\path[->,draw] (e) edge (d);
+\end{tikzpicture}
+ \\ \midrule
 % once printed, draw in G(P) from 6.1.c
 
 Facts
@@ -1380,36 +1408,7 @@ Therefore, during conflict analysis, if all but one conditions of a nogood are f
 Wellfounded Semantics $\Omega$
 & Uses the greatest unfounded set to determine the stable model of a program by identifying the atoms that are acyclically supportable in a program and (the important ability) identifying the atoms that are not acyclically supportable, including those in loops. 
 Also in the form of $\langle \{\top\}, \{\bot\} \rangle$, where $\{\top\}$ is a stable model and $\{\bot\}$ is the set of atoms that are not acyclically derivable.
-&& (walkthrough in \ref{subsec:wellf-sem}) &\\ \midrule
-
-
-
-
-
-
-
-
-
-
-
-	
-
-
-		
-
-
-
-
-
-
-
-
-
-
-Conflict analysis
-& 
-&& (walkthrough in \ref{subsec:ng-confl}) &\\ \midrule
-%	
+&& (walkthrough in \ref{subsec:wellf-sem}) &\\
 \end{longtable}
 
 

@@ -1,3 +1,15 @@
 ## Cheatsheet for Answer Set Programming
 
-This is a practically-oriented explanation of key concepts and syntax/notations of ASP based on the class "Answer Set Programming in Practice" at the Uni Potsdam in the winter semester 2019/20. This document will be updated with new concepts throughout the semester.
+Uni Potsdam, winter semester 2019/20
+
+This document contains step-by-step walkthroughs and explanations (to the best of my understanding) of the ASP algorithms covered in class (listed below), as well as a glossary of important concepts and ASP syntax/notations.
+
+- The reduct *P^X*
+- Clark's completion *CF(P)*
+- Loop formulas *LF(P)*
+- Greatest unfounded set, all unfounded sets
+- Fitting semantics
+- Wellfounded semantics
+- Nogoods (completion and loop nogoods)
+- Unit propagation
+- Conflict analysis

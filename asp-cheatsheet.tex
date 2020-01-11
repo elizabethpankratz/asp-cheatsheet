@@ -232,12 +232,12 @@ Formally: stable models = $CF(P)\ \cup$ loop formulas.
 
 \vspace{\baselineskip}
 
-For the above example, the supported models of the completion are $\{a, c\}$ and $\{a, c, b, c\}$ (one with the loop atoms and one without).
+For the above example, the supported models of the completion are $\{a, c\}$ and $\{a, c, b, d\}$ (one with the loop atoms and one without).
 
 \begin{center}
 	\begin{tabular}{llp{20cm}}
 		$\checkmark$ & $\{a, c\}$ & The precondition of the loop formula, $b \lor d$, is false, since neither $b$ nor $d$ is in the model. This makes the implication true. Thus $\{a, c\}$ is a stable model. \\
-		$\times$ & $\{a, c, b, c\}$ & The precondition of the loop formula is true, since $b$ or $d$ is in the model (in fact, both are). However, the RHS is not fulfilled: we have $\neg e$ (by virtue of $e$ not being in the model) and $a$, while the implication requires $e$ and $\neg a$. Thus the loop formula is not satisfied, so $\{a, c, b, c\}$ is not a stable model.\\
+		$\times$ & $\{a, c, b, d\}$ & The precondition of the loop formula is true, since $b$ or $d$ is in the model (in fact, both are). However, the RHS is not fulfilled: we have $\neg e$ (by virtue of $e$ not being in the model) and $a$, while the implication requires $e$ and $\neg a$. Thus the loop formula is not satisfied, so $\{a, c, b, d\}$ is not a stable model.\\
 	\end{tabular}
 \end{center}
 

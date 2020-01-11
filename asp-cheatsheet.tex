@@ -13,6 +13,9 @@
 \usepackage{ulem}
 \usepackage{titlesec}
 \usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{forest}
+
 
 
 \newcolumntype{L}{>{\raggedright\arraybackslash}p{2.5cm}}
@@ -742,7 +745,7 @@ The beginning of a derivation is in the following table, formatted as in the exe
 
 \renewcommand{\arraystretch}{1.5}
 \begin{center}	
-	\begin{tabular}{l|ll|l|p{12cm}}
+	\begin{tabular}{l|ll|l|p{15cm}}
 	$dl$ & $\sigma_d$ & $\overline{\sigma}$ & $\delta$ & Step, notes \\ \hline \hline
 	1 & $\ngta{a}$ 	& & & (1) Decision literal at decision level one; doesn't propagate, because $\ngta{a}$ appears in the nogood saying that if a rule's head is true, all bodies cannot be false, and since there are multiple bodies with a head of $a$, there are too many unknown elements for the nogood to be able to propgate (skip (2)). \\ \hline
 	2 & $\ngfa{b}$ 	& & & (3) Decision literal at decision level 2---this time, it propagates, because $b$ is in the head of a rule ($b \leftarrow d, {\sim} c$), and for every rule there's a nogood saying that if the head is false, the full body cannot be true.\\
@@ -762,27 +765,25 @@ Note: Some lambda notation is also used in the exercises for the conflict nogood
 
 
 
+\pagebreak
 
 
-
-
-
-
-\vspace{\baselineskip}
-\textbf{FirstUIP: Resolution for finding a unit-propagating conflict nogood at the smaller decision level}
+\textbf{FirstUIP: Resolution for finding a unit-propagating conflict nogood at the earliest conflicting decision level}
 
 Now that we've found a conflict, we want to jump back up to the decision level that contains the earlier nogood that's involved in the current conflict and use our new knowledge about what is not possible in the model to follow a different path from that point.
-This involves using a resolution technique to derive a conflict nogood that contains only one undefined element of the decision level with the earlier nogood.
-When we jump back to that earlier decision level, we can then use this new conflict nogood to continue unit propagation where we had reached a dead end before.
+This involves using a resolution technique to get from the conflict nogood we just found, $\varepsilon$, to a new conflict nogood, $\delta$, that contains only one element that is undefined at the earliest decision level involved in the conflict.
+When we jump back to that earlier decision level, we can then use $\delta$ to continue unit propagation where we had reached a dead end before.\\
+
+(Note: The variables $\varepsilon$ and $\delta$ are used kind of weirdly in the exercises, and also there's a $\delta'$? Anyway, the important thing is that the original $\varepsilon$ is the original conflict nogood, and that the final $\delta$ is the nogood that can be applied to the earliest decision level involved in the conflict.)\\
 
 The resolution technique says:
 \begin{enumerate}[noitemsep]
-	\item Start with the first conflict nogood $\varepsilon$, the one that unit-propagates to the truth assignment that conflicts with one we already know. 
-	\item Find the nogood on the current decision level that implied that one, i.e.\ the one that brought the $\varepsilon$ to its unit-resulting status, filling in the second-last element. 
-	There will be one element contained that has the opposite truth value of the element in $\varepsilon$.
+	\item Start with the first conflict nogood $\varepsilon$, the one that conflicts with the assignment that we already know. 
+	\item Find the nogood on the current decision level that implied that one, i.e.\ the one that most recently filled in the last element of $\varepsilon$. 
+	There will be one element contained that has the opposite truth value of that element in $\varepsilon$.
 	\item ``Resolve'' those two nogoods by merging them and deleting both instances of the element that is true in one and false in the other.
-	What results is a new conflict nogood, $\delta' = \delta$.
-	\item Now, look for another nogood that unit-propagated to give one of the elements in the new conflict nogood.
+	What results is a new conflict nogood, $\delta' = \delta$ (on the left in the tree below).
+	\item Now, look for another nogood among the ones we already used that unit-propagated to give one of the elements in the new conflict nogood (on the right in the tree below).
 	That element should exist in true and false versions between the new conflict nogood and the nogood you will find.
 	Resolve those two again to get a new conflict nogood.
 	\item Continue this iterative process until a nogood $\delta$ with exactly one literal from the current decision level is obtained (all other literals having been decided by you/implied by unit propagation on earlier decision levels).
@@ -790,7 +791,26 @@ The resolution technique says:
 	This new nogood $\delta$ will allow further unit propagation at that decision level, continuing on from the stage where we had to stop before, since we had run out of nogoods.
 \end{enumerate}
 
-[example]
+Continuing the example above (on the top left is the original conflict nogood; on the right is the nogood that unit-propagated to the grey assignment in the left one; grey literals indicate those that have to be removed when merged; underlined literals are those on the current decision layer (recall that we stop the iteration once there is only one literal of the current decision layer)):
+
+\begin{center}
+	\begin{forest}
+	for tree = {grow=north}
+[{$ \{ \ngta{a}, \underline{\ngta{e}} \}  = \delta$}
+	[{$ \{ {\color{gray}\ngtb{{\sim} b, {\sim} e}}, \underline{\ngta{e}} \} $}]
+	[{$ \{ \ngta{a}, \underline{{\color{gray}\ngfb{{\sim} b, {\sim} e}}}, \underline{\ngta{e}} \} $}
+		[{$ \{ {\color{gray}\ngfb{a, e}}, \ngta{a}, \ngta{e} \} $}]
+		[{$ \{ \ngta{a}, \underline{\ngfb{{\sim} b, {\sim} e}}, \underline{{\color{gray}\ngtb{a, e}}} \} $}
+			[{$ \{ {\color{gray}\ngfa{g}}, \underline{\ngtb{a, e}} \} $}]
+			[{$ \{ \ngta{a}, \underline{\ngfb{{\sim} b, {\sim} e}}, \underline{{\color{gray}\ngta{g}}} \} $}
+				[{$ \{ {\color{gray} \ngtb{{\sim}b, {\sim}g}}, \underline{\ngta{g}} \} $}]
+				[{$ \varepsilon = \{ \ngta{a}, \underline{\ngfb{{\sim} b, {\sim} e}}, \underline{{\color{gray} \ngfb{{\sim} b, {\sim} g}}} \} $}]
+			]
+		]
+	]
+]
+	\end{forest}
+\end{center}
 
 
 % ----------------------------------------------------------------------

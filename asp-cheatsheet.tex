@@ -190,8 +190,8 @@ Given a program $P$ that contains a set of loops $loops(P)$, compute the loop fo
 \end{enumerate}
 
 For example, for the program $P = \left\{\begin{array}{lll}
-a \leftarrow & b \leftarrow\ \sim a & b \leftarrow c, d\\
-c \leftarrow a, \sim e & d \leftarrow b, c & d \leftarrow e, \sim a\\
+a \leftarrow & b \leftarrow {\sim} a & b \leftarrow c, d\\
+c \leftarrow a, {\sim} e & d \leftarrow b, c & d \leftarrow e, {\sim} a\\
 \end{array}\right\}$, which contains $loops(P) = \{ \{b, d\} \}$:
 
 \begin{center}
@@ -200,17 +200,17 @@ c \leftarrow a, \sim e & d \leftarrow b, c & d \leftarrow e, \sim a\\
 		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 		%
 		2a (identify rules) &  & $\begin{array}{l}
-		b \leftarrow\ \sim a\\
+		b \leftarrow {\sim} a\\
 		d \leftarrow b, c\\
 		b \leftarrow c, d\\
-		d \leftarrow e, \sim a
+		d \leftarrow e, {\sim} a
 		\end{array}$  \\ & \\
 		%
 		2b (disqualify rules) &  & $\begin{array}{ll}
-		b \leftarrow\ \sim a & \checkmark \\
+		b \leftarrow {\sim} a & \checkmark \\
 		d \leftarrow \underline{b}, c & \times  \text{ (loop atom in pos body)}\\
 		b \leftarrow c, \underline{d} & \times  \text{ (loop atom in pos body)}\\
-		d \leftarrow e, \sim a & \checkmark
+		d \leftarrow e, {\sim} a & \checkmark
 		\end{array}$  \\ & \\
 		%
 		2c (disjunction) & $b \lor d \rightarrow (\neg a) \lor (e \land \neg a)$
@@ -268,8 +268,8 @@ Unfoundedness criteria: A set of atoms $U$ is unfounded wrt some partial interpr
 \end{enumerate}
 
 For example, given the program $P = \left\{\begin{array}{lll}
-a \leftarrow\ \sim d & b \leftarrow\ \sim a & b \leftarrow d, e\\
-c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
+a \leftarrow {\sim} d & b \leftarrow {\sim} a & b \leftarrow d, e\\
+c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
 
 \begin{center}
@@ -277,13 +277,13 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 	Step & Work-in-progress & Notes\\ \midrule
 	%
 	1 (remove incompatible rules) & $P = \left\{\begin{array}{lll}
-	a \leftarrow\ \sim d & \msout{b \leftarrow\ \underline{\sim a}} & b \leftarrow d, e\\
-	c \leftarrow a, \sim e & \msout{d \leftarrow \underline{b}, c} & e \leftarrow d, \sim c\\
+	a \leftarrow {\sim} d & \msout{b \leftarrow \underline{{\sim} a}} & b \leftarrow d, e\\
+	c \leftarrow a, {\sim} e & \msout{d \leftarrow \underline{b}, c} & e \leftarrow d, {\sim} c\\
 	\end{array}\right\}$ & $a$ is $\top$ but in neg body; $b$ is $\bot$ but in pos body. \\ &\\
 	%
 	2 (rm neg atoms to get reduct) & $P = \left\{\begin{array}{lll}
-	a \leftarrow\ \msout{\sim d }& \msout{b \leftarrow\ \sim a} & b \leftarrow d, e\\
-	c \leftarrow a, \msout{\sim e} & \msout{d \leftarrow b, c} & e \leftarrow d, \msout{\sim c}\\
+	a \leftarrow \msout{{\sim} d }& \msout{b \leftarrow {\sim} a} & b \leftarrow d, e\\
+	c \leftarrow a, \msout{{\sim} e} & \msout{d \leftarrow b, c} & e \leftarrow d, \msout{{\sim} c}\\
 	\end{array}\right\}$ & \\ &\\
 	%
 	3 (minimal model) & $\{a, c\}$ & (this doesn't necessarily mean that these atoms are true)\\ &\\
@@ -292,23 +292,23 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 	%
 	5 (subsets unfounded?) & $\begin{array}{lllc} 
 		\text{Subsets of GUS} & \text{Rules} & \text{Unf.\ criterion} & U \text{ unf?}\\ \midrule
-		U = \{b, d\} 	& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+		U = \{b, d\} 	& b \leftarrow \underline{{\sim} a} 	& (ii)\ a = \top & \\
 						& b \leftarrow \underline{d}, e		& (iii)\ d \in U & \\
 						& d \leftarrow \underline{b}, c		& (iii)\ b \in U, = \bot & \checkmark \\ \midrule
 						%
-		U = \{b, e\} 	& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+		U = \{b, e\} 	& b \leftarrow \underline{{\sim} a} 	& (ii)\ a = \top & \\
 						& b \leftarrow d, \underline{e}		& (iii)\ e \in U & \\
-						& e \leftarrow d, \sim c			& \text{external support} & \times \\ \midrule
+						& e \leftarrow d, {\sim} c			& \text{external support} & \times \\ \midrule
 						%
 		U = \{d, e\} 	& d \leftarrow \underline{b}, c 	& (i)\ b = \bot & \\
-						& e \leftarrow \underline{d}, \sim c& (iii)\ d \in U & \checkmark \\ \midrule
+						& e \leftarrow \underline{d}, {\sim} c& (iii)\ d \in U & \checkmark \\ \midrule
 						%
-		U = \{b\} 		& b \leftarrow\ \underline{\sim a} 	& (ii)\ a = \top & \\
+		U = \{b\} 		& b \leftarrow \underline{{\sim} a} 	& (ii)\ a = \top & \\
 						& b \leftarrow d, e					& \text{external support} & \times \\ \midrule
 						%
 		U = \{d\} 		& d \leftarrow \underline{b}, c		& (iii)\ b = \bot & \checkmark \\ \midrule
 						%
-		U = \{e\} 		& e \leftarrow d, \sim c 			& \text{external support} & \times \\ \midrule
+		U = \{e\} 		& e \leftarrow d, {\sim} c 			& \text{external support} & \times \\ \midrule
 		U = \varnothing 	&  & & \checkmark \\ \midrule
 	\end{array}$
 	& Thus, the unfounded sets are $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$. \\
@@ -326,8 +326,8 @@ Using the same method as outlined above for computing loop formulas for the elem
 Then the formulas are compared to the partial interpretation used to generate the unfounded sets. (Why? Not sure.)
 
 For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$, for the program $P = \left\{\begin{array}{lll}
-a \leftarrow\ \sim d & b \leftarrow\ \sim a & b \leftarrow d, e\\
-c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
+a \leftarrow {\sim} d & b \leftarrow {\sim} a & b \leftarrow d, e\\
+c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
 
 \begin{center}
@@ -339,13 +339,13 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 		%
 		2a (identify rules) &  & $\begin{array}{l}
-		b \leftarrow\ \sim a\\
+		b \leftarrow {\sim} a\\
 		b \leftarrow d, e\\
 		d \leftarrow b, c
 		\end{array}$  \\ & \\
 		%
 		2b (disqualify rules) &  & $\begin{array}{ll}
-		b \leftarrow\ \underline{\sim a} & \times \hspace{8pt} (a = \top) \\
+		b \leftarrow \underline{{\sim} a} & \times \hspace{8pt} (a = \top) \\
 		b \leftarrow \underline{d}, e & \times \hspace{8pt} (d \in U) \\
 		d \leftarrow \underline{b}, c & \times \hspace{8pt} (b = \bot) 
 		\end{array}$  \\ & \\
@@ -357,13 +357,13 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 %		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 %		%
 %		2a (identify rules) &  & $\begin{array}{l}
-%		b \leftarrow\ \sim a\\
+%		b \leftarrow {\sim} a\\
 %		b \leftarrow d, e\\
 %		d \leftarrow b, c
 %		\end{array}$  \\ & \\
 %		%
 %		2b (disqualify rules) &  & $\begin{array}{ll}
-%		b \leftarrow\ \sim a\\
+%		b \leftarrow {\sim} a\\
 %		b \leftarrow d, e\\
 %		d \leftarrow b, c & \checkmark
 %		\end{array}$  \\ & \\
@@ -375,13 +375,13 @@ c \leftarrow a, \sim e & d \leftarrow b, c & e \leftarrow d, \sim c\\
 %		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 %		%
 %		2a (identify rules) &  & $\begin{array}{l}
-%		b \leftarrow\ \sim a\\
+%		b \leftarrow {\sim} a\\
 %		b \leftarrow d, e\\
 %		d \leftarrow b, c
 %		\end{array}$  \\ & \\
 %		%
 %		2b (disqualify rules) &  & $\begin{array}{ll}
-%		b \leftarrow\ \sim a\\
+%		b \leftarrow {\sim} a\\
 %		b \leftarrow d, e\\
 %		d \leftarrow b, c & \checkmark
 %		\end{array}$  \\ & \\
@@ -411,8 +411,8 @@ A technique for iteratively constructing an interpretation of a program (equival
 Stopping once all the atoms are collected is allowed because the Fitting operator is monotonic: can only add to it (as soon as you know an atom is true, it stays true).
 
 For example, given the program $P = \left\{\begin{array}{lll}
-a \leftarrow b, \sim e & b \leftarrow\ \sim c & c \leftarrow\ \sim a \\
-a \leftarrow\ \sim d & c \leftarrow d, \sim e & d \leftarrow
+a \leftarrow b, {\sim} e & b \leftarrow {\sim} c & c \leftarrow {\sim} a \\
+a \leftarrow {\sim} d & c \leftarrow d, {\sim} e & d \leftarrow
 \end{array}\right\}$, we calculate the Fitting Semantics as follows.
 
 \begin{center}
@@ -420,11 +420,11 @@ a \leftarrow\ \sim d & c \leftarrow d, \sim e & d \leftarrow
 \text{Step} & \text{Fitting-in-progress} & \text{Rules} & \text{Notes} \\ \midrule
 1 & \Phi^0 \langle \varnothing, \varnothing \rangle && \\&\\
 2 & \Phi^1 \langle \{d\}, \{e\} \rangle & d \leftarrow & \text{no rule for}\ e, \text{so can call}\ \bot\\&\\
-3 & \Phi^2 \langle \{d, c\}, \{e\} \rangle & c \leftarrow d, \sim e & \text{only need one rule to call an atom}\ \top \\&\\
-3 & \Phi^3 \langle \{d, c\}, \{e, b\} \rangle & b \leftarrow\ \sim c & \text{no other rules to derive}\ b, \text{so can call}\ \bot \\&\\
+3 & \Phi^2 \langle \{d, c\}, \{e\} \rangle & c \leftarrow d, {\sim} e & \text{only need one rule to call an atom}\ \top \\&\\
+3 & \Phi^3 \langle \{d, c\}, \{e, b\} \rangle & b \leftarrow {\sim} c & \text{no other rules to derive}\ b, \text{so can call}\ \bot \\&\\
 3 & \Phi^4 \langle \{d, c\}, \{e, b, a\} \rangle & \begin{array}{@{}l}
-a \leftarrow b, \sim e\\
-a \leftarrow\ \sim d
+a \leftarrow b, {\sim} e\\
+a \leftarrow {\sim} d
 \end{array} & \text{neither rule is usable, so now can safely call}\ a\ \bot \\ &\\
 4 & \text{total interpretation -- done}
 \end{array}$
@@ -459,8 +459,8 @@ Loop atoms without any external support are contained in the GUS.
 \pagebreak
 
 For example, given the program $P = \left\{\begin{array}{lll}
-a \leftarrow b, \sim f & b \leftarrow a, c & d \leftarrow\ \sim f\\
-a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
+a \leftarrow b, {\sim} f & b \leftarrow a, c & d \leftarrow {\sim} f\\
+a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 \end{array}\right\}$ (note that $loop(P) = \{ \{a, b \} \}$), we calculate the Wellfounded semantics as follows.
 
 \begin{center}
@@ -478,15 +478,15 @@ a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
 		WS 2b / GUS 1 (remove incompatible rules (none for $\varnothing$)) 
 		&
 		& $P = \left\{\begin{array}{lll}
-		a \leftarrow b, \sim f & b \leftarrow a, c & d \leftarrow\ \sim f\\
-		a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
+		a \leftarrow b, {\sim} f & b \leftarrow a, c & d \leftarrow {\sim} f\\
+		a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 		\end{array}\right\}$ \\ &\\
 		%
 		WS 2b / GUS 2 (rm neg atoms to get reduct) 
 		& 
 		& $P = \left\{\begin{array}{lll}
-		a \leftarrow b, \msout{\sim f} & b \leftarrow a, c & d \leftarrow\ \msout{\sim f}\\
-		a \leftarrow e & c \leftarrow d, \msout{\sim e} & e \leftarrow f
+		a \leftarrow b, \msout{{\sim} f} & b \leftarrow a, c & d \leftarrow \msout{{\sim} f}\\
+		a \leftarrow e & c \leftarrow d, \msout{{\sim} e} & e \leftarrow f
 		\end{array}\right\}$  \\ &\\
 		%
 		WS 2b / GUS 3 (minimal model) 
@@ -507,15 +507,15 @@ a \leftarrow e & c \leftarrow d, \sim e & e \leftarrow f
 		WS 3b / GUS 1 (remove incompatible rules) 
 		&
 		& $P = \left\{\begin{array}{lll}
-		\msout{a \leftarrow b, \sim f} & \msout{b \leftarrow a, c} & d \leftarrow\ \sim f\\
-		\msout{a \leftarrow e} & c \leftarrow d, \sim e & \msout{e \leftarrow f}
+		\msout{a \leftarrow b, {\sim} f} & \msout{b \leftarrow a, c} & d \leftarrow {\sim} f\\
+		\msout{a \leftarrow e} & c \leftarrow d, {\sim} e & \msout{e \leftarrow f}
 		\end{array}\right\}$ \\ &\\
 		%
 		WS 3b / GUS 2 (rm neg atoms to get reduct) 
 		& 
 		& $P = \left\{\begin{array}{lll}
-		\msout{a \leftarrow b, \sim f} & \msout{b \leftarrow a, c} & d \leftarrow\ \msout{\sim f}\\
-		\msout{a \leftarrow e} & c \leftarrow d, \msout{\sim e} & \msout{e \leftarrow f}
+		\msout{a \leftarrow b, {\sim} f} & \msout{b \leftarrow a, c} & d \leftarrow \msout{{\sim} f}\\
+		\msout{a \leftarrow e} & c \leftarrow d, \msout{{\sim} e} & \msout{e \leftarrow f}
 		\end{array}\right\}$ \\ &\\
 		%
 		WS 3b / GUS 3 (minimal model) 
@@ -558,7 +558,7 @@ First take completion, and use that to compute the following.
 \end{tabular}
 \end{center}
 
-If an atom in the body is negated, then $\ngfa{\sim \text{body atom}} = \ngta{\text{body atom}}$, and vice versa.
+If an atom in the body is negated, then $\ngfa{{\sim} \text{body atom}} = \ngta{\text{body atom}}$, and vice versa.
 
 For facts:, i.e.\ $a \leftrightarrow \top$:
 \begin{align*}
@@ -583,13 +583,13 @@ First determine the loop formulas of form: $\text{loop atom 1} \lor \text{loop a
 	\end{tabular}
 \end{center}
 
-Here, even if a support body atom is negated, can't change $\ngfb{\sim \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.
+Here, even if a support body atom is negated, can't change $\ngfb{{\sim} \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.
 
 \vspace{\baselineskip}
 
 For example, given the program $P = \left\{\begin{array}{lll}
-a \leftarrow c & b \leftarrow d, \sim c & d \leftarrow\ \sim a\\
-a \leftarrow\ \sim b & c \leftarrow a, d & d \leftarrow c
+a \leftarrow c & b \leftarrow d, {\sim} c & d \leftarrow {\sim} a\\
+a \leftarrow {\sim} b & c \leftarrow a, d & d \leftarrow c
 \end{array}\right\}$ (note that $loop(P) = \{ \{a, c\}, \{c, d\}, \{a, c, d\} \}$):
 
 For $\Delta_P$, first take the completion.
@@ -610,18 +610,18 @@ Then:
 \begin{center}
 	$\begin{array}{rlll}
 		\Delta_P = & \{ \{ \ngfa{a}, \ngtb{c} \}, & (1)\ a \leftrightarrow c \lor (\neg b) & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
-		& \{ \ngfa{a}, \ngtb{\sim b} \}, & (1) & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
-		& \{ \ngta{a}, \ngfb{c}, \ngfb{\sim b} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngfa{a}, \ngtb{{\sim} b} \}, & (1) & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{a}, \ngfb{c}, \ngfb{{\sim} b} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
 		& \{ \ngtb{c}, \ngfa{c} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
 		& \{ \ngfb{c}, \ngta{c} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
-		& \{ \ngtb{\sim b}, \ngfa{\sim b} \} = \{ \ngtb{\sim b}, \ngta{b} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
-		& \{ \ngfb{\sim b}, \ngta{\sim b} \} = \{ \ngfb{\sim b}, \ngfa{b} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
+		& \{ \ngtb{{\sim} b}, \ngfa{{\sim} b} \} = \{ \ngtb{{\sim} b}, \ngta{b} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{{\sim} b}, \ngta{{\sim} b} \} = \{ \ngfb{{\sim} b}, \ngfa{b} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
 		%
-		& \{ \ngfa{b}, \ngtb{d, \sim c} \}, & (1)\ b \leftrightarrow d \land \neg c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
-		& \{ \ngta{b}, \ngfb{d, \sim c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
-		& \{ \ngtb{d, \sim c}, \ngfa{d} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
-		& \{ \ngtb{d, \sim c}, \ngfa{\sim c} \} = \{ \ngtb{d, \sim c}, \ngta{c} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
-		& \{ \ngfb{d, \sim c}, \ngta{d}, \ngta{\sim c} \} = \{ \ngfb{d, \sim c}, \ngta{d}, \ngfa{c} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
+		& \{ \ngfa{b}, \ngtb{d, {\sim} c} \}, & (1)\ b \leftrightarrow d \land \neg c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngta{b}, \ngfb{d, {\sim} c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{d, {\sim} c}, \ngfa{d} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngtb{d, {\sim} c}, \ngfa{{\sim} c} \} = \{ \ngtb{d, {\sim} c}, \ngta{c} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{d, {\sim} c}, \ngta{d}, \ngta{{\sim} c} \} = \{ \ngfb{d, {\sim} c}, \ngta{d}, \ngfa{c} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
 		%
 		& \{ \ngfa{c}, \ngtb{a, d} \}, & (1)\ c \leftrightarrow a \land d  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
 		& \{ \ngta{c}, \ngfb{a, d} \}, & (2)  & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
@@ -629,11 +629,11 @@ Then:
 		& \{ \ngtb{a, d}, \ngfa{d} \}, & (3)  & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
 		& \{ \ngfb{a, d}, \ngta{a}, \ngta{d} \}, & (4)  & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\&\\
 		%
-		& \{ \ngfa{d}, \ngtb{\sim a} \}, & (1)\ d \leftrightarrow (\neg a) \lor c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
+		& \{ \ngfa{d}, \ngtb{{\sim} a} \}, & (1)\ d \leftrightarrow (\neg a) \lor c  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
 		& \{ \ngfa{d}, \ngtb{c} \}, & (1)  & \{ \ngfa{\text{head}}, \ngtb{\text{body}} \} \\
-		& \{ \ngta{d}, \ngfb{\sim a}, \ngfb{c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
-		& \{ \ngtb{\sim a}, \ngfa{\sim a} \} = \{ \ngtb{\sim a}, \ngta{a} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
-		& \{ \ngfb{\sim a}, \ngta{\sim a} \} = \{ \ngfb{\sim a}, \ngfa{a} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
+		& \{ \ngta{d}, \ngfb{{\sim} a}, \ngfb{c} \}, & (2) & \{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \} \\
+		& \{ \ngtb{{\sim} a}, \ngfa{{\sim} a} \} = \{ \ngtb{{\sim} a}, \ngta{a} \}, & (3) & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
+		& \{ \ngfb{{\sim} a}, \ngta{{\sim} a} \} = \{ \ngfb{{\sim} a}, \ngfa{a} \}, & (4) & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
 		& \{ \ngtb{c}, \ngfa{c} \}, & (3)\ \text{(duplicate)} & \{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \} \\
 		& \{ \ngfb{c}, \ngta{c} \} \} & (4)\ \text{(duplicate)} & \{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \\
 	\end{array}$
@@ -652,13 +652,13 @@ For $\delta_P$, first find the loop formulas for $loop(P) = \{ \{a, c\}, \{c, d\
 Then:
 \begin{center}
 	$\begin{array}{rlll}
-	\delta_P = 	& \{ \{ \ngta{a}, \ngfb{\sim b} \}, && a \lor c \rightarrow \neg b \\
-				& \{ \ngta{c}, \ngfb{\sim b} \}, && \\ &\\
-				& \{ \ngta{c}, \ngfb{\sim a} \}, && c \lor d \rightarrow \neg a \\
-				& \{ \ngta{d}, \ngfb{\sim a} \}, && \\ &\\
-				& \{ \ngta{a}, \ngfb{\sim a}, \ngfb{\sim b} \}, && a \lor c \lor d \rightarrow (\neg a) \lor (\neg b) \\
-				& \{ \ngta{c}, \ngfb{\sim a}, \ngfb{\sim b} \}, && \\			
-				& \{ \ngta{d}, \ngfb{\sim a}, \ngfb{\sim b} \} \} && \\		
+	\delta_P = 	& \{ \{ \ngta{a}, \ngfb{{\sim} b} \}, && a \lor c \rightarrow \neg b \\
+				& \{ \ngta{c}, \ngfb{{\sim} b} \}, && \\ &\\
+				& \{ \ngta{c}, \ngfb{{\sim} a} \}, && c \lor d \rightarrow \neg a \\
+				& \{ \ngta{d}, \ngfb{{\sim} a} \}, && \\ &\\
+				& \{ \ngta{a}, \ngfb{{\sim} a}, \ngfb{{\sim} b} \}, && a \lor c \lor d \rightarrow (\neg a) \lor (\neg b) \\
+				& \{ \ngta{c}, \ngfb{{\sim} a}, \ngfb{{\sim} b} \}, && \\			
+				& \{ \ngta{d}, \ngfb{{\sim} a}, \ngfb{{\sim} b} \} \} && \\		
 	\end{array}$
 \end{center}
 
@@ -667,8 +667,10 @@ Then:
 \subsection{Determining unit-resulting or violated nogoods}
 \label{subsec:ng-viol}
 
+\renewcommand{\arraystretch}{1.5}
+
 To see if any nogoods of a program are unit-resulting wrt a particular assignment, look to see if there are any nogoods for which that assignment corresponds to all but one of the elements.
-If there is only one element left over, then the opposite of that element must hold (see unit propagation below), so that nogood is unit-resulting.
+If there is only one element left over, then the opposite of that element must hold (see unit propagation in the glossary below), so that nogood is unit-resulting.
 Violated nogoods are those where all elements hold wrt a given assignment.\\
 
 If the assignment contains several nogoods, then only one of the contained elements needs to be in any given nogood for that nogood to be worth looking at, i.e.\ the nogood doesn't need to contain every element in the assignment.\\
@@ -678,9 +680,9 @@ For example, given the nogoods above:
 \begin{center}
 	$\begin{array}{lll}
 	\text{Assignments} & \text{Unit-resulting nogoods (underline indicates $\in A$)} & \text{Violated nogoods}\\ \midrule
-	A = () & - & - \\[.5em]
-	A = (\ngta{c}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, \sim c}, \underline{\ngta{c}}\}, \{\underline{\ngta{c}}, \ngfb{a, d}\} & -\\[.5em]
-	A = (\ngta{a}, \ngfb{\sim a}, \ngta{d}) & \{\ngfb{a, d}, \underline{\ngta{a}}, \underline{\ngta{d}}\}, \{\underline{\ngta{d}}, \underline{\ngfb{\sim a}}, \ngfb{c}\}, \{\ngta{b}, \underline{\ngfb{\sim a}}\}, \{\ngta{c}, \underline{\ngfb{\sim a}}\} & \{\underline{\ngta{d}}, \underline{\ngfb{\sim a}}\} \\
+	A = () & - & - \\
+	A = (\ngta{c}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, {\sim} c}, \underline{\ngta{c}}\}, \{\underline{\ngta{c}}, \ngfb{a, d}\} & -\\
+	A = (\ngta{a}, \ngfb{{\sim} a}, \ngta{d}) & \{\ngfb{a, d}, \underline{\ngta{a}}, \underline{\ngta{d}}\}, \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}, \ngfb{c}\}, \{\ngta{b}, \underline{\ngfb{{\sim} a}}\}, \{\ngta{c}, \underline{\ngfb{{\sim} a}}\} & \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}\} \\
 \end{array}$
 \end{center}
 
@@ -689,48 +691,101 @@ For example, given the nogoods above:
 \subsection{Using nogoods for conflict analysis}
 \label{subsec:ng-confl}
 
-The basic method of conflict-driven nogood learning (CDNL-ASP) involves a lot of guessing-and-checking.
+The method of conflict-driven nogood learning (CDNL-ASP) involves a lot of guessing-and-checking.
 
 \vspace{\baselineskip}
-\textbf{Identifying a conflict nogood using NogoodPropagation($P, \varnothing, A$)}
+\textbf{NogoodPropagation($P, \varnothing, A$): Identifying a conflict nogood}
 
 To reach a conflict by unit propagation:
 
-\begin{enumerate}
-	\item Choose some literal to have some truth value---this is your ``decision literal'' at ``decision level'' 1.
-	\item Look at your nogoods to see if this choice results in unit propagation, i.e.\ if your decision literal is one of two elements in a nogood.
-	\begin{enumerate}
-		\item If no: choose a better decision literal.
-		\item If yes: see which ``implied nogoods'' are unit-propagated from nogoods containing your decision literal, and then keep checking to see which nogoods are further implied by the growing inventory of decided and implied truth assignments. 
+\begin{enumerate}[noitemsep]
+	\item Choose some literal to have some truth value---this is your ``decision literal'' $\sigma_d$ at ``decision level'' (\textit{dl}) 1.
+	\item Look at your nogoods to see if your decision literal is one of two elements in a nogood $\delta$, which means that this choice results in unit propagation.
+	\begin{enumerate}[noitemsep]
+		\item If no: maybe choose a better decision literal, or move on to (3).
+		\item If yes: write down the ``implied literal'' $\overline{\sigma}$ that are unit-propagated from nogoods containing your decision literal.
+		This gives you a growing inventory of decided/implied assignments. as this process continues.
+		Keep checking to see which nogoods are further implied by the current inventory of assignments. 
 		Continue until no more unit propagation can happen at the current decision level.
-		(Also, apparently should look at see if true assignments are in a loop, but I can't remember why...)
+		(Also, should apparently look at see if true assignments are in a loop, but I can't remember why...)
 	\end{enumerate}
 	\item Randomly choose some other literal to have some truth value---this is the decision literal at decision level 2.
 	\item Again, look at your nogoods to see how your inventory of truth assignments from decision level 1 as well as the new decision literal propagate.
 	\item Repeat until there is some nogood implied by your working assignment that results in an assignment that conflicts with one you already have, e.g.\ if you already know $\ngtb{a, e}$, but some unit-propagating nogood requires $\ngfb{a, e}$.
-	This means that the current decision literal is incompatible with the one that produced the old truth assignment involved in the conflict.
+	This means that the current decision literal is incompatible with the one at some earlier decision layer that produced the old truth assignment involved in the conflict.
 \end{enumerate}
 
-[example]
+This process requires familiarity with at least the basic format of nogoods, given above in Section \ref{subsec:ng} and restated here for convenience:
+
+\renewcommand{\arraystretch}{1}
+
+\begin{center}
+	\begin{tabular}{rll}
+		$\Delta_P =$ 	& $\{ \{ \ngfa{\text{head}}, \ngtb{\text{body}} \},$ & (per rule in program) \\
+		& $\{ \ngta{\text{head}}, \ngfb{\text{body 1}}, \ngfb{\text{body n}} \},$ & (per head, containing bodies of all rules sharing a head) \\
+		& $\{ \ngtb{\text{body}}, \ngfa{\text{body atom}} \},$ & (per body per atom)\\
+		& $\{ \ngfb{\text{body}}, \ngta{\text{body atom 1}}, \ngta{\text{body atom n}} \} \}$ & (per body, containing all atoms in one body)\\[1em]
+		$\delta_P =$ 	& $\{ \{ \ngta{\text{loop atom 1}}, \ngfb{\text{support body atom 1}}, \ngfb{\text{support body atom n}} \},$ \\
+		& $\{ \ngta{\text{loop atom m}}, \ngfb{\text{support body atom 1}}, \ngfb{\text{support body atom n}} \} \}$ \\
+	\end{tabular}
+\end{center}
+
+
+For example, take the program $P = \left\{\begin{array}{lll}
+a \leftarrow {\sim} b, {\sim} e &a \leftarrow f, {\sim} c & b \leftarrow d, {\sim} c \\
+c \leftarrow a, {\sim} e & d \leftarrow {\sim} b, {\sim} g & e \leftarrow {\sim} c\\
+f \leftarrow a, {\sim} d & f \leftarrow {\sim} b, {\sim} g & g \leftarrow a, e
+\end{array}\right\}$ (Exercise 8.4).
+\vspace{\baselineskip}
+
+The beginning of a derivation is in the following table, formatted as in the exercises ($dl$ = decision level, $\sigma_d$ = decision literal, $\overline{\sigma}$ = implied literal, $\delta$ the nogood that implies that literal).
+
+\renewcommand{\arraystretch}{1.5}
+\begin{center}	
+	\begin{tabular}{l|ll|l|p{12cm}}
+	$dl$ & $\sigma_d$ & $\overline{\sigma}$ & $\delta$ & Step, notes \\ \hline \hline
+	1 & $\ngta{a}$ 	& & & (1) Decision literal at decision level one; doesn't propagate, because $\ngta{a}$ appears in the nogood saying that if a rule's head is true, all bodies cannot be false, and since there are multiple bodies with a head of $a$, there are too many unknown elements for the nogood to be able to propgate (skip (2)). \\ \hline
+	2 & $\ngfa{b}$ 	& & & (3) Decision literal at decision level 2---this time, it propagates, because $b$ is in the head of a rule ($b \leftarrow d, {\sim} c$), and for every rule there's a nogood saying that if the head is false, the full body cannot be true.\\
+	  & 			& $\ngfb{d, {\sim}c}$ & $\{ \ngfa{b}, \ngtb{d, {\sim}c} \}$ & (4) Unit propagation (UP): we know $\ngfa{b}$ (well, we have declared it), and the only other element in this nogood is $\ngtb{d, {\sim}c}$, and since both elements can't hold at once, the opposite of the unknown one has to hold, so we add the implied literal $\ngfb{d, {\sim}c}$ to our inventory of assignments.\\ \hline
+	3 & $\ngfb{a, {\sim} e}$ & & & (3) Decision literal at decision level 3. This propagates, because it is the body of a rule ($c \leftarrow a, {\sim} e$), and there is (i) a head nogood saying that if all bodies with a given head are false (holds here since there's only one rule for $c$), the head cannot be true; (ii) a body nogood saying that if a body is false, it cannot be the case that each individual literal it contains is true.\\
+	  &				& $\ngfa{c}$ & $\{\ngta{c}, \ngfb{a, {\sim}e}\}$ & (i) UP: The head of the rule must be false, if the body is false. Now we look for nogoods that contain $\ngfa{c}$. There is one: the body nogood for rule $e \leftarrow {\sim} c$, saying that a body cannot be false if the literal in it is true (in our case, $ \ngta{{\sim}c} = \ngfa{c}$).\\
+	  &				& $\ngtb{{\sim} c}$ & $\{ \ngfb{{\sim} c}, \ngfa{c} \}$ & UP. Now, look for a nogood with $\ngtb{{\sim} c}$ in it. There is one for the same rule, saying that the head cannot be false if the body is true.\\
+	  &				& $\ngta{e}$ & $\{ \ngfa{e}, \ngtb{{\sim}c} \}$ & UP. Now, look for a nogood with $\ngta{e}$ in it. There is one, a body nogood for the rule $a \leftarrow {\sim} b, {\sim} e$ saying that if that body is true, then ${\sim}e$ cannot be false, i.e.\ $e$ cannot be true.\\
+	  &				& $\ngfb{{\sim} b, {\sim} e}$ & $\{ \ngtb{{\sim} b, {\sim} e}, \ngta{e} \}$ & UP. \\
+	  &				& $\vdots$ &  $\vdots$ & ... this continues for a while; I'm going to jump to the conflict, which arises when we know $\ngfb{{\sim} b, {\sim} e}$ (was just implied), $\ngfb{{\sim} b, {\sim} g}$ (skipped), and $\ngta{a}$ (from $dl$ 1) \\
+	  &				& & $\{ \ngta{a}, \ngfb{{\sim} b, {\sim} e}, \ngfb{{\sim} b, {\sim} g} \} = \varepsilon$ & This nogood is from both rules that have $a$ as a head, saying that $a$ cannot be true if both bodies are false. However, our current assignment contains all three of these elements, and since they cannot all hold at the same time, this is the first conflict nogood $\varepsilon$. \\
+\end{tabular}
+\end{center}
+
+Note: Some lambda notation is also used in the exercises for the conflict nogood, don't know what it means: $\{ \ngta{a}, \ngfb{{\sim} b, {\sim} e}, \ngfb{{\sim} b, {\sim} g} \} = \lambda(a, \{a, f\})$.
+
+
+
+
+
+
+
+
+
 
 \vspace{\baselineskip}
-\textbf{Resolution for finding a unit-propagating conflict nogood at the smaller decision level}
+\textbf{FirstUIP: Resolution for finding a unit-propagating conflict nogood at the smaller decision level}
 
 Now that we've found a conflict, we want to jump back up to the decision level that contains the earlier nogood that's involved in the current conflict and use our new knowledge about what is not possible in the model to follow a different path from that point.
 This involves using a resolution technique to derive a conflict nogood that contains only one undefined element of the decision level with the earlier nogood.
 When we jump back to that earlier decision level, we can then use this new conflict nogood to continue unit propagation where we had reached a dead end before.
 
 The resolution technique says:
-\begin{enumerate}
-	\item Start with the first conflict nogood $\epsilon$, the one that unit-propagates to the truth assignment that conflicts with one we already know. 
-	\item Find the nogood on the current decision level that implied that one, i.e.\ the one that brought the $\epsilon$ to its unit-resulting status, filling in the second-last element. 
-	There will be one element contained that has the opposite truth value of the element in $\epsilon$.
-	\item ``Resolve'' those two by merging them and deleting both instances of the element that is true in one and false in the other.
+\begin{enumerate}[noitemsep]
+	\item Start with the first conflict nogood $\varepsilon$, the one that unit-propagates to the truth assignment that conflicts with one we already know. 
+	\item Find the nogood on the current decision level that implied that one, i.e.\ the one that brought the $\varepsilon$ to its unit-resulting status, filling in the second-last element. 
+	There will be one element contained that has the opposite truth value of the element in $\varepsilon$.
+	\item ``Resolve'' those two nogoods by merging them and deleting both instances of the element that is true in one and false in the other.
 	What results is a new conflict nogood, $\delta' = \delta$.
 	\item Now, look for another nogood that unit-propagated to give one of the elements in the new conflict nogood.
 	That element should exist in true and false versions between the new conflict nogood and the nogood you will find.
 	Resolve those two again to get a new conflict nogood.
-	\item Continue the process until a nogood $\delta$ with exactly one literal from the current decision level is obtained (all other literals having been either decided or implied on earlier decision levels).
+	\item Continue this iterative process until a nogood $\delta$ with exactly one literal from the current decision level is obtained (all other literals having been decided by you/implied by unit propagation on earlier decision levels).
 	\item Take this new nogood with exactly one undefined literal and backjump to the decision level where the conflict first arose (unbeknownst to us then).
 	This new nogood $\delta$ will allow further unit propagation at that decision level, continuing on from the stage where we had to stop before, since we had run out of nogoods.
 \end{enumerate}
@@ -742,7 +797,7 @@ The resolution technique says:
 
 \pagebreak
 	
-\section{Concepts, constructs, and notation}
+\section{Glossary: Concepts, constructs, and notation}
 
 \begin{longtable}{Lp{14.5cm}lXX}
 	
@@ -980,14 +1035,14 @@ On the other hand, if several different constraints contain those atoms, then th
 
 Dependency graph $G(P)$
 & Given a rule in a program, draw a directed edge in a graph going in the same direction as in the rule, from the atom(s) in the rule's positive body to the atom in the rule's head.
-For example, given $a \leftarrow b, \sim e$, remove the negative body and draw an arrow from $b$ to $a$ on the graph.
+For example, given $a \leftarrow b, {\sim} e$, remove the negative body and draw an arrow from $b$ to $a$ on the graph.
 Do this for all rules to create the graph of the program, $G(P)$ (a.k.a.\ positive dependency graph).
 Can be used to quickly identify loops.
 && 
 $\left\{\begin{array}{ll}
 a \leftarrow & b \leftarrow c, d\\
-c \leftarrow a, \sim e & d \leftarrow b, c \\
-b \leftarrow\ \sim a & d \leftarrow e, \sim a
+c \leftarrow a, {\sim} e & d \leftarrow b, c \\
+b \leftarrow {\sim} a & d \leftarrow e, {\sim} a
 \end{array}\right\}$  &  \\ \midrule
 % once printed, draw in G(P) from 6.1.c
 
@@ -1376,7 +1431,7 @@ Conflict analysis
 		\item Each interpretation (combination of atoms) satisfies a choice rule without lower and upper bounds, i.e.\ $0 \{ \ldots \} \infty$.
 		\item It is not true that a logic program without choice rules has at most one stable model.
 		\begin{itemize}[noitemsep]
-			\item If a logic program has even loops through negation, then there can be two stable models, since $1\{a, b\}1$ is the same as $\{a \leftarrow \sim b, b \leftarrow \sim a\}$.
+			\item If a logic program has even loops through negation, then there can be two stable models, since $1\{a, b\}1$ is the same as $\{a \leftarrow {\sim} b, b \leftarrow {\sim} a\}$.
 		\end{itemize} 
 		\item The stable models of a logic program $P \cup C$, where $C$ is a set of integrity constraints, are stable models of $P$.
 		\begin{itemize}[noitemsep]
@@ -1393,7 +1448,7 @@ Conflict analysis
 	\begin{itemize}[noitemsep]
 		\item It is not true that a rule is safe if all variables in its head also appear in its body. It should be: A rule is safe if all variables anywhere within it also appear in its positive body.
 		\begin{itemize}[noitemsep]
-			\item Example of unsafe rule: $a(X) \leftarrow \sim b(X)$. $X$ does not appear in a positive body.
+			\item Example of unsafe rule: $a(X) \leftarrow {\sim} b(X)$. $X$ does not appear in a positive body.
 		\end{itemize}
 		\item It is not true that each safe program has a finite number of finite stable models.
 		\begin{itemize}[noitemsep]
@@ -1408,7 +1463,7 @@ Conflict analysis
 	\begin{itemize}[noitemsep]
 		\item It is not true that, if a set of atoms $X$ is a model of a normal program $P$, then $X$ is a model of $CF(P)$.
 		\begin{itemize}[noitemsep]
-			\item Example: The set $X = \{a\}$ is a model of $P = \{a \leftarrow \sim a\}$, but not of  $CF(P) = \{a \leftrightarrow \neg a\}$
+			\item Example: The set $X = \{a\}$ is a model of $P = \{a \leftarrow {\sim} a\}$, but not of  $CF(P) = \{a \leftrightarrow \neg a\}$
 		\end{itemize}
 		\item Given a normal program $P$, if a set of atoms $X$ is a model of $CF(P)$, then $X$ is a model of $P$.
 		\item Given a normal program $P$, it is not true that, if a set of atom $X$ is a model of $CF(P)$, then $X$ is a stable model of $P$.
@@ -1418,15 +1473,15 @@ Conflict analysis
 		\item If $X$ is a stable model of a normal program $P$, then $X$ is a model of $CF(P)$.
 		\item Given a normal program $P$, it is not true that, if $CF(P)$ has (at least) one model, then $P$ has (at least) one stable model.
 		\begin{itemize}[noitemsep]
-			\item Example: For the program $P = \{a \leftarrow a, a \leftarrow \sim a\}$, $X = \{a\}$ is a model of the completion $CF(P) = \{a \leftrightarrow (a \lor \neg a)\}$, but $P$ has no stable models.
+			\item Example: For the program $P = \{a \leftarrow a, a \leftarrow {\sim} a\}$, $X = \{a\}$ is a model of the completion $CF(P) = \{a \leftrightarrow (a \lor \neg a)\}$, but $P$ has no stable models.
 		\end{itemize}
 		\item Let $P$ be a normal program and $L_1, L_2 \in loop(P)$. If $(L_1 \cap L_2) \neq \varnothing$, then $(L_1 \cup L_2) \in loop(P)$.
 	\end{itemize}
 	
 	\item[8] \textbf{Nogoods, conflict-driven ASP solving}
 	\begin{itemize}[noitemsep]
-		\item It is not the case that, to compute the stable models of a logic program $P$, ASP systems first construct a flat internal representation of the nogoods in $\Delta_P \cup \Lambda_P$.
-		\item For each tight logic program, the solutions of $\Delta_P$ coincide with the solutions of $\Delta_P \cup \Lambda_P$.
+		\item It is not the case that, to compute the stable models of a logic program $P$, ASP systems first construct a flat internal representation of the completion nogoods and the loop nogoods in $\Delta_P \cup \Lambda_P$ (in the notation of the printed exercises---for this document, this corresponds to  $\Delta_P \cup \delta_P$, which I use because this notation was used in the tutorials).
+		\item For each tight logic program, the solutions of $\Delta_P$ coincide with the solutions of $\Delta_P \cup \Lambda_P$ (again, $\Delta_P \cup \delta_P$ here).
 		\item A Unique Implication Point (UIP) of a decision level, along with literals assigned at smaller decision levels, lead to a conflict by propagation.
 		\item Each decision level beyond 0 at which a conflict occurs has some UIP.
 		\item If a logic program has no stable model, it is false that conflict-driven ASP solving procedures may loop infinitely.

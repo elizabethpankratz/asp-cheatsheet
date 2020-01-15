@@ -330,7 +330,7 @@ Using the same method as outlined above for computing loop formulas for the elem
 Then the formulas are compared to the partial interpretation used to generate the unfounded sets.\\
 
 
-For example, using the unfounded sets identified above, $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$, for the program $P = \left\{\begin{array}{lll}
+For example, using two of the unfounded sets identified above, $\varnothing$ and $\{b,d\}$, for the program $P = \left\{\begin{array}{lll}
 a \leftarrow {\sim} d & b \leftarrow {\sim} a & b \leftarrow d, e\\
 c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \end{array}\right\}$ and the partial interpretation $\langle \{a\}, \{b\} \rangle$:
@@ -339,7 +339,7 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
 		Step & Loop-formulas-in-progress & Rules \\ \midrule
 		1 (set-up) & $\varnothing \rightarrow$ & \\
-		2 (empty set) & $\bot \rightarrow \bot$ & \\ \midrule
+		2 (empty set) & $LF_P(\varnothing) = \{ \bot \rightarrow \bot \}$ & \\ \midrule
 		
 		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 		%
@@ -350,12 +350,12 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 		\end{array}$  \\ & \\
 		%
 		2b (disqualify rules) &  & $\begin{array}{ll}
-		b \leftarrow \underline{{\sim} a} & \times \hspace{8pt} (a = \top) \\
+		b \leftarrow {\sim} a &  \\
 		b \leftarrow \underline{d}, e & \times \hspace{8pt} (d \in U) \\
-		d \leftarrow \underline{b}, c & \times \hspace{8pt} (b = \bot) 
+		d \leftarrow \underline{b}, c & \times \hspace{8pt} (b \in U) 
 		\end{array}$  \\ & \\
 		%
-		2c (disjunction) & $b \lor d \rightarrow \bot ?$ \\ \midrule
+		2c (disjunction) & $LF_P( \{b, d\} ) = \{b \lor d \rightarrow \neg a\}$ \\ \midrule
 		%
 		%
 		%

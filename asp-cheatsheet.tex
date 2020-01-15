@@ -423,11 +423,11 @@ a \leftarrow {\sim} d & c \leftarrow d, {\sim} e & d \leftarrow
 \begin{center}
 	$\begin{array}{llll}
 \text{Step} & \text{Fitting-in-progress} & \text{Rules} & \text{Notes} \\ \midrule
-1 & \Phi^0 \langle \varnothing, \varnothing \rangle && \\&\\
-2 & \Phi^1 \langle \{d\}, \{e\} \rangle & d \leftarrow & \text{no rule for}\ e, \text{so can call}\ \bot\\&\\
-3 & \Phi^2 \langle \{d, c\}, \{e\} \rangle & c \leftarrow d, {\sim} e & \text{only need one rule to call an atom}\ \top \\&\\
-3 & \Phi^3 \langle \{d, c\}, \{e, b\} \rangle & b \leftarrow {\sim} c & \text{no other rules to derive}\ b, \text{so can call}\ \bot \\&\\
-3 & \Phi^4 \langle \{d, c\}, \{e, b, a\} \rangle & \begin{array}{@{}l}
+1 & \Phi^0 \langle \varnothing, \varnothing \rangle = \langle \varnothing, \varnothing \rangle && \\&\\
+2 & \Phi^1 \langle \varnothing, \varnothing \rangle = \langle \{d\}, \{e\} \rangle & d \leftarrow & \text{no rule for}\ e, \text{so can call}\ \bot\\&\\
+3 & \Phi^2 \langle \varnothing, \varnothing \rangle = \langle \{d, c\}, \{e\} \rangle & c \leftarrow d, {\sim} e & \text{only need one rule to call an atom}\ \top \\&\\
+3 & \Phi^3 \langle \varnothing, \varnothing \rangle = \langle \{d, c\}, \{e, b\} \rangle & b \leftarrow {\sim} c & \text{no other rules to derive}\ b, \text{so can call}\ \bot \\&\\
+3 & \Phi^4 \langle \varnothing, \varnothing \rangle = \langle \{d, c\}, \{e, b, a\} \rangle & \begin{array}{@{}l}
 a \leftarrow b, {\sim} e\\
 a \leftarrow {\sim} d
 \end{array} & \text{neither rule is usable, so now can safely call}\ a\ \bot \\ &\\
@@ -456,7 +456,7 @@ Loop atoms without any external support are contained in the GUS.
 	\item For $\Omega^n (n>1)$:
 	\begin{enumerate}[noitemsep]
 		\item $\top$ set: add whatever new atoms can now be derived from the program, knowing the partial interpretation in $\Omega^{n-1}$.
-		\item $\bot$ set: compute the GUS wrt the $\top$ set in $\Omega^n$ and the $\bot$ set in $\Omega^{n-1}$ (i.e.\ (1) remove rules containing negated atoms in the $\top$ set or positive atoms in the $\bot$ set, (2) remove any remaining negated atoms, (3) compute minimal model, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set for  $\Omega^{n}$)
+		\item $\bot$ set: compute the GUS wrt the partial interpretation in $\Omega^{n-1}$ (i.e.\ (1) remove rules containing negated atoms in the $\top$ set or positive atoms in the $\bot$ set, (2) remove any remaining negated atoms, (3) compute minimal model, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set for  $\Omega^{n}$)
 	\end{enumerate}	
 	\item Repeat until you either reach a fixpoint (the partial interpretation that goes in is the same as what comes out) or or a total interpretation (all atoms in the program appear in the interpretation).
 \end{enumerate}
@@ -469,7 +469,7 @@ a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 \end{array}\right\}$ (note that $loop(P) = \{ \{a, b \} \}$), we calculate the Wellfounded semantics as follows.
 
 \begin{center}
-	\begin{tabular}{p{5cm}p{5cm}p{7cm}}
+	\begin{tabular}{p{5cm}p{7cm}p{7cm}}
 		Step & Wellfounded-in-progress & GUS-in-progress\\ \midrule
 		%
 		WS 1
@@ -478,7 +478,7 @@ a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 		%
 		%
 		WS 2a (add facts (none, so $\varnothing$))
-		& $\Omega^1 \langle \varnothing, \text{GUS wrt}\ \varnothing \rangle$ &\\&\\
+		& $\Omega^1  \langle \varnothing, \varnothing \rangle = \langle \varnothing, \text{GUS wrt}\ \langle \varnothing, \varnothing \rangle \rangle$ &\\&\\
 		%
 		WS 2b / GUS 1 (remove incompatible rules (none for $\varnothing$)) 
 		&
@@ -503,11 +503,11 @@ a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 		&  $\{a, b, c, d, e, f\} \backslash \{d, c\} = \{a, b, e, f\} = $ GUS  \\&\\
 		%
 		WS 2
-		& $\Omega^1 \langle \varnothing, \{a, b, e, f\} \rangle$ &\\ \midrule
+		& $\Omega^1  \langle \varnothing, \varnothing \rangle = \langle \varnothing, \{a, b, e, f\} \rangle$ &\\ \midrule
 		%
 		%
 		WS 3a (add derivable atoms knowing $\Omega^1$) 
-		& $\Omega^2 \langle \{c, d\}, \{a, b, e, f\} \rangle$ &\\&\\
+		& $\Omega^2  \langle \varnothing, \varnothing \rangle = \langle \{c, d\}, \text{GUS wrt} \langle \varnothing, \{a, b, e, f\} \rangle \rangle$ &\\&\\
 		%
 		WS 3b / GUS 1 (remove incompatible rules) 
 		&
@@ -532,7 +532,7 @@ a \leftarrow e & c \leftarrow d, {\sim} e & e \leftarrow f
 		&  $\{a, b, c, d, e, f\} \backslash \{d, c\} = \{a, b, e, f\} = $ GUS  \\&\\
 		%
 		WS 3 
-		& $\Omega^2 \langle \{c, d\}, \{a, b, e, f\} \rangle$& \\ \midrule
+		& $\Omega^2  \langle \varnothing, \varnothing \rangle = \langle \{c, d\}, \{a, b, e, f\} \rangle$& \\ \midrule
 		WS 4 & total interpretation -- done & \\ \midrule
 	\end{tabular}
 \end{center}

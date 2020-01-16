@@ -678,7 +678,7 @@ To see if any nogoods of a program are unit-resulting wrt a particular assignmen
 If there is only one element left over, then the opposite of that element must hold (see unit propagation in the glossary below), so that nogood is unit-resulting.
 Violated nogoods are those where all elements hold wrt a given assignment.\\
 
-If the assignment contains several nogoods, then only one of the contained elements needs to be in any given nogood for that nogood to be worth looking at, i.e.\ the nogood doesn't need to contain every element in the assignment.\\
+A nogood doesn't need to contain every element in the assignment for it to be potentially unit-resulting or violated (e.g.\ for the assignment $A = (\ngta{a}, \ngfb{{\sim} a}, \ngta{d})$, any nogood containing any one of those individual assignments can be unit-resulting, such as $\{\ngta{c}, \ngfb{{\sim} a}\}$, resulting in $\ngfa{c}$).\\
 
 For example, given the nogoods above:
 
@@ -687,7 +687,9 @@ For example, given the nogoods above:
 	\text{Assignments} & \text{Unit-resulting nogoods (underline indicates $\in A$)} & \text{Violated nogoods}\\ \midrule
 	A = () & - & - \\
 	A = (\ngta{c}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, {\sim} c}, \underline{\ngta{c}}\}, \{\underline{\ngta{c}}, \ngfb{a, d}\} & -\\
-	A = (\ngta{a}, \ngfb{{\sim} a}, \ngta{d}) & \{\ngfb{a, d}, \underline{\ngta{a}}, \underline{\ngta{d}}\}, \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}, \ngfb{c}\}, \{\ngta{b}, \underline{\ngfb{{\sim} a}}\}, \{\ngta{c}, \underline{\ngfb{{\sim} a}}\} & \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}\} \\
+	A = (\ngta{c}, \ngfb{a, d}, \ngta{a}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, {\sim} c}, \underline{\ngta{c}}\}, \{\underline{\ngta{a}}, \ngfb{{\sim}b}\}, \{\underline{\ngfb{a, d}}, \underline{\ngta{a}}, \ngta{d}\}
+	& \{\underline{\ngta{c}}, \underline{\ngfb{a, d}}\}
+%	A = (\ngfa{c}, \ngfb{d, {\sim} c}) & \{\ngfb{a, d}, \underline{\ngta{a}}, \underline{\ngta{d}}\}, \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}, \ngfb{c}\}, \{\ngta{b}, \underline{\ngfb{{\sim} a}}\}, \{\ngta{c}, \underline{\ngfb{{\sim} a}}\} & \{\underline{\ngta{d}}, \underline{\ngfb{{\sim} a}}\} \\
 \end{array}$
 \end{center}
 
@@ -708,14 +710,14 @@ To reach a conflict by unit propagation:
 	\item Look at your nogoods to see if your decision literal is one of two elements in a nogood $\delta$, which means that this choice results in unit propagation.
 	\begin{enumerate}[noitemsep]
 		\item If no: maybe choose a better decision literal, or move on to (3).
-		\item If yes: write down the ``implied literal'' $\overline{\sigma}$ that are unit-propagated from nogoods containing your decision literal.
+		\item If yes: write down the ``implied literal(s)'' $\overline{\sigma}$ that are unit-propagated from nogoods containing your decision literal.
 		This gives you a growing inventory of decided/implied assignments. as this process continues.
 		Keep checking to see which nogoods are further implied by the current inventory of assignments. 
 		Continue until no more unit propagation can happen at the current decision level.
 		(Also, should apparently look at see if true assignments are in a loop, but I can't remember why...)
 	\end{enumerate}
 	\item Randomly choose some other literal to have some truth value---this is the decision literal at decision level 2.
-	\item Again, look at your nogoods to see how your inventory of truth assignments from decision level 1 as well as the new decision literal propagate.
+	\item Again, look at your nogoods to see how your inventory of truth assignments from decision level 1 as well as the new decision literal propagate. (If you feel like you reach a dead end, try looking at new combinations of existing truth assignments and larger nogoods.)
 	\item Repeat until there is some nogood implied by your working assignment that results in an assignment that conflicts with one you already have, e.g.\ if you already know $\ngtb{a, e}$, but some unit-propagating nogood requires $\ngfb{a, e}$.
 	This means that the current decision literal is incompatible with the one at some earlier decision layer that produced the old truth assignment involved in the conflict.
 \end{enumerate}
@@ -785,7 +787,7 @@ The resolution technique says:
 	There will be one element contained that has the opposite truth value of that element in $\varepsilon$.
 	\item ``Resolve'' those two nogoods by merging them and deleting both instances of the element that is true in one and false in the other.
 	What results is a new conflict nogood, $\delta' = \delta$ (on the left in the tree below).
-	\item Now, look for another nogood among the ones we already used that unit-propagated to give one of the elements in the new conflict nogood (on the right in the tree below).
+	\item Now, look for the \textbf{most recent} nogood among the ones we already used that unit-propagated to give one of the elements in the new conflict nogood (on the right in the tree below).
 	That element should exist in true and false versions between the new conflict nogood and the nogood you will find.
 	Resolve those two again to get a new conflict nogood.
 	\item Continue this iterative process until a nogood $\delta$ with exactly one literal from the current decision level is obtained (all other literals having been decided by you/implied by unit propagation on earlier decision levels).

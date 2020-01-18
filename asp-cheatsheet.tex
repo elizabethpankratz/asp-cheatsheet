@@ -419,7 +419,7 @@ Loop atoms without any external support are contained in the GUS.
 	\item For $\Omega^1$:
 	\begin{enumerate}[noitemsep]
 		\item $\top$ set: fill with facts from the program.
-		\item $\bot$ set: compute the GUS wrt knowing that whatever atoms are in the $\top$ set so far are true (i.e.\ (1) remove rules containing negated atoms in the $\top$ set, (2) remove any remaining negated atoms, (3) compute the minimal model of this reduct, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set; see above)
+		\item $\bot$ set: compute the GUS wrt $\langle \varnothing, \varnothing \rangle$ (i.e.\ skip (1) because there are no negated atoms in $\varnothing$, (2) remove any remaining negated atoms, (3) compute the minimal model of this reduct, and (4) subtract the atoms in the minimal model from all atoms in the program $A$ to get the GUS = $\bot$ set; see above)
 	\end{enumerate}
 	\item For $\Omega^n (n>1)$:
 	\begin{enumerate}[noitemsep]

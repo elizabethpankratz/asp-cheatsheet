@@ -849,7 +849,7 @@ Then we add the first element in each tuple to get the sum (right).
 
 %	(Sums cont'd)
 & Combining choice rule notation with the \texttt{\#sum\{\}} function is a way of making constraints and rules that only hold when the sum is in a particular range. 
-Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (not) fall into.
+Now the numbers on either side of the function have nothing to do with cardinality or power sets -- they determine the range that the sum must (or must not) fall into.
 For example, the constraint \texttt{:- 1 \#sum\{\ldots\}.} means to eliminate a stable model if the sum it produces is $\geq 1$, and the rule \texttt{c :- \#sum\{\ldots\} 3.} means that \texttt{c} is true iff the sum produced by the other true atoms is $\leq$ 3.
 
 &&\texttt{%
@@ -883,8 +883,11 @@ Boolean literals
 
 Cardinality rules \newline (Ex.\ 1 Part 1  1.10)
 & These are rules (if there's a head) or constraints (if the head is empty) that only apply when the conditions about the cardinality in the body (formatted like a choice rule) are true.
-For example, the constraint \texttt{:- 1 \{ a;b \} 1.} means to eliminate a stable model if it contains either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).		
-Also, the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if either \texttt{a} or \texttt{b} is true, and not true if the empty set or \texttt{\{a, b\}} are true.
+For example, \texttt{1 \{ a;b \} 1.} means any combination of those atoms that contain only either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).
+Also, \texttt{2 \{ a;b;c \} 2.} means any combination of $a$, $b$, and $c$ in a set with cardinality 2 (i.e.\ $\{a,b\}, \{b, c\}$, or $\{a, c\}$).
+Then, in constraint form, \texttt{:- 2 \{ a;b;c \} 2.} means to remove any models that contain any of those combinations.
+%For example, the constraint \texttt{:- 1 \{ a;b \} 1.} means to eliminate a stable model if it contains only either \texttt{\{a\}} or \texttt{\{b\}} (but not the empty set, nor \texttt{\{a, b\}}; see the choice rule syntax above).		
+And the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if either \texttt{a} or \texttt{b} is true, and not true if the empty set or \texttt{\{a, b\}} are true.
 && \texttt{%
 	\{ a; b \}. \newline
 	:- 1 \{ a;b \} 1. \newline
@@ -906,7 +909,7 @@ Also, the rule \texttt{c :- 1 \{ a;b \} 1.} means that \texttt{c} is true if eit
 Choice rules \newline (Ex.\ 1 Part 1  1.7, 1.9)
 & Another way to provoke multiple paths through the rules.
 The syntax is as follows: \newline \texttt{x \{\ldots \} y.}, where $0 \leq$ \texttt{x}, \texttt{y} $\leq$ cardinality of \texttt{\{\ldots \}}. 
-This means to take all combinations of atoms in \texttt{\{\ldots \}} (i.e.\ the power set) to be true, but where the minimum cardinality of the atoms you take is \texttt{x} and the maximum cardinality is \texttt{y}. 
+This means to take all combinations of atoms in \texttt{\{\ldots \}} (i.e.\ the power set) to be true, where the minimum cardinality of the atoms you take is \texttt{x} and the maximum cardinality is \texttt{y}. 
 If no \texttt{x} or \texttt{y} are given, then the defaults are \texttt{x} $ = 0$, i.e.\ $\varnothing$, and \texttt{y} $=$ cardinality of \texttt{\{\ldots \}}.
 (If \texttt{x}, \texttt{y} $\geq$ cardinality of \texttt{\{\ldots \}}, then the program is unsatisfiable.)
 && \texttt{%
@@ -919,7 +922,7 @@ If no \texttt{x} or \texttt{y} are given, then the defaults are \texttt{x} $ = 0
 	---------- \newline
 	\{ a \} }\\
 
-&&& \texttt{%
+&When several variables are involved, then you get one stable model per possible combination of these variables (with cardinality constraints on the output set as applicable; see the right-hand example).&& \texttt{%
 	\{ a; b \}. \newline
 	---------- \newline
 	\{ \} \newline
@@ -1021,10 +1024,8 @@ For the latter, all models are eliminated that \textit{do} contain \texttt{a}, s
 	---------- \newline
 	\{ \} } \\
 
-& If a constraint has multiple atoms in its body, then all of those must simultaneously be satisfied by the model for the constraint to apply (left).
-On the other hand, if several different constraints contain those atoms, then the constraints apply independently (right). \newline
+& If a constraint has multiple atoms in its body, then all of those must simultaneously be satisfied by the model for the constraint to apply.
 
-\textit{Note:} First work out all of the stable models that satisfy the program, and then check to see if constraints apply, and if yes, eliminate that model.
 && \texttt{%
 	:- b, c. \newline
 	b :- c. \newline
@@ -1033,19 +1034,30 @@ On the other hand, if several different constraints contain those atoms, then th
 	\sout{\{ b, c \}} } \newline
 \textit{[unsatisfiable]}
 & \texttt{%
+	:- b, c. \newline
+	b. \newline
+	---------- \newline
+	\{ b \}} \\ &\\
+
+& On the other hand, if several different constraints contain those atoms, then the constraints apply independently. \newline
+
+\textit{Note:} First work out all of the stable models that satisfy the program, and then check to see if constraints apply, and if yes, eliminate that model.
+&& \texttt{%
 	:- b. \newline
 	:- c. \newline
 	c :- d. \newline
 	d. \newline
 	---------- \newline
 	\sout{\{ c, d \}} } \newline
-\textit{[unsatisfiable]} \\ \midrule
+\textit{[unsatisfiable]} \\  \midrule
 
 Dependency graph $G(P)$
 & Given a rule in a program, draw a directed edge in a graph going in the same direction as in the rule, from the atom(s) in the rule's positive body to the atom in the rule's head.
 For example, given $d \leftarrow e, {\sim} a$, remove the negative part of the body and draw an arrow from $e$ to $d$ on the graph.
 Do this for all rules to create the graph of the program, $G(P)$ (a.k.a.\ the positive dependency graph).
-Can be used to quickly identify loops, because the the arrow goes in both directions, e.g.\ between $b$ and $d$ at right.
+Can be used to quickly identify loops, because the the arrow goes in both directions, e.g.\ between $b$ and $d$ at right. \newline
+
+The graph at right can also be written as a 2-tuple consisting of the set of nodes and the set of edges (as 2-tuples, where the first element is the node that the dependency comes ``from'' (in the body of the rule) and the second, the node that the dependency goes ``to'' (the head of the rule)): \newline $G(P) = (\{a, b, c, d, e\}, \{(a,c), (c, b), (b, d), (d, b), (e, d)\})$.
 && 
 $\left\{\begin{array}{ll}
 a \leftarrow & b \leftarrow c, d\\
@@ -1088,7 +1100,7 @@ If the program is not tight, then Fitting Semantics can't be used to determine t
 
 Interpretation
 & An assignment of all atoms in a program to true and false.
-&& -- &\\ \midrule
+&& -- &\\ %\midrule
 
 Interpretation, partial
 & An assignment of some atoms in a program to true and false, written $\langle \{\top\}, \{\bot\} \rangle$, e.g.\ $\langle \{a\}, \{b\} \rangle$ means that $a$ is true and $b$ is false.
@@ -1133,7 +1145,7 @@ This can lead to multiple stable models.
 	\{ b, d \}} \newline \\ %\midrule
 
 
-& If there are multiple triggers, i.e.\ that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
+& If there are multiple triggers, i.e.\ this mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
 && \texttt{%
 	a :- not b. \newline
 	b :- not a. \newline
@@ -1157,7 +1169,9 @@ So this statement produces no stable models, i.e.\ it is unsatisfiable.
 
 %	Paradoxes with \newline complex bodies \newline (Ex.\ 1 Part 1  1.5, 1.6)
 & If the rest of the body is true, then we reach the paradox, meaning that the model is unsatisfiable (left).
-If there is one false atom in the body, then the rule can no longer tell us anything about the head, so we avoid the paradox and can satisfy the program (right).
+If there is one false atom in the body, then the rule can no longer tell us anything about the head, so we avoid the paradox and can satisfy the program (right).\newline
+
+Keep an eye out for rules formatted like $a \leftarrow d, {\sim}a$---these are still paradoxes, even though the ${\sim}a$ comes after the $d$, so the visual pattern isn't there!
 && \texttt{%
 	a :- not a, d. \newline
 	d. \newline
@@ -1175,7 +1189,7 @@ Loop formulas $LF(P)$
 So, loop formulas are used for identifying external support for loop atoms:\ they are the disjunctions of all bodies of rules (a) whose head contains a loop atom and (b) whose positive body does not contain any atoms from the loop (it's OK if the negative body contains loop atoms, those may be contained in loop formulas).
 There is one loop formula per loop in the program.
 They can also be calculated on unfounded sets.
-&& (walkthrough for a program in \ref{subsec:lf}, for unfounded sets in \ref{subsec:lf-unf}) &\\ \midrule
+&& (walkthrough for a program in \ref{subsec:lf}, for unfounded sets in \ref{subsec:lf-unf}) &\\ %\midrule
 
 Model
 & A set is a model if it satisfies all rules of a program.
@@ -1190,6 +1204,11 @@ For example, given the program \texttt{a :- b, c, d.}:\newline
 Stable model (adds acyclic support) $\subseteq$ supported model (adds support) $\subseteq$ model
 && -- &\\ \midrule
 
+Model, Herbrand
+& I have no actual idea.
+Herbrand models appear to involve listing all variables in the domain in all combinations, whether or not it's justifiable based on the program.
+We never really talked about it, so probably it's not that important.\\ \midrule
+
 Model, stable
 & A set is a stable model (or ``answer set'') if it is a model (i.e.\ if it satisfies all the rules of a program) \textit{and} if there is justification in the program for every atom (i.e.\ if each atom is provably true).
 The program \texttt{a :- b, c, d.} has no stable models, since none of the atoms are justified. 
@@ -1197,6 +1216,7 @@ There can be multiple stable models if there are multiple ``paths'' through a se
 You compute stable models using reducts (see below). \newline
 
 \textit{Note:} Stable models are represented in what follows as atoms between \texttt{\{\}} below \texttt{-----} after all of the rules of the program.
+Each \texttt{\{\}} is a different stable model.
 && \texttt{a. \newline
 	---------- \newline
 	\{ a \}} &\\ \midrule
@@ -1218,7 +1238,7 @@ The empty set is the result because it is the minimal stable model (but it can b
 	\{ \} } &\\ \midrule
 
 Negation \newline (Ex.\ 1 Part 1: 1.2, 1.3)
-& True if the contained atom is not true or not provable (see ``Truth'' above).
+& True if the contained atom is not true or not provable (see ``Truth'' below).
 && \texttt{a :- not b. \newline
 	---------- \newline
 	\{ a \} } 
@@ -1287,7 +1307,7 @@ Formally:
 \end{center}
 where $h$ = head of rule, $r$ = rule, $B^+(r)$ = atoms in body of rule that are positive (i.e.\ contain no negation), $B^-(r)$ = atoms in body of rule that are negative. \newline
 
-What this says is that the reduct contains (a) no rules that have an atom in their negative body that is also in $X$ (these are removed because we know we can't use them to justify anything, since the atom is negative in the rule but positive in our set $X$) and (b) only the positive parts of rules that have a negative atom in their body whose positive counterpart isn't in $X$ (i.e.\ all negative atoms are removed).
+What this says is that the reduct contains (a) no rules that have an atom in their negative body that is also in $X$ (these are removed because we know we can't use them to justify anything, since the atom is negative in the rule but positive in our set $X$) and (b) only the positive parts of rules that have a negative atom in their body whose positive counterpart isn't in $X$ (i.e.\ all remaining negative atoms are removed).
 You are left with a positive program $P^X$. \newline
 
 && (walkthrough in \ref{subsec:reduct}) &\\ \midrule
@@ -1295,7 +1315,7 @@ You are left with a positive program $P^X$. \newline
 Reduct, consequence of
 & The atoms that you can justify using the reduct $P^X$, i.e.\ the left-over positive program (see above), are the consequence of the reduct, written $Cn(P^X)$.
 If $Cn(P^X) = X$, i.e.\ if what you put in is the same as what you get out, then you have yourself a stable model.
-&& -- &\\ \midrule
+&& (walkthrough in \ref{subsec:reduct}) &\\ \midrule
 
 
 Rules
@@ -1311,8 +1331,24 @@ So even if we have conflicting results (i.e.\ one rule says an atom is true, ano
 Safety
 &  A rule is safe if all variables appearing anywhere within it also appear in its positive body, or in the condition of a set generator. 
 A program is safe if all rules are safe.
-A program needs to be safe because an unsafe program means that there is no domain of the variables (i.e.\ no mapping of variables to atoms), and we need a domain in order to ground the program so it can be solved.
-&& -- &\\ \midrule	
+A program needs to be safe because an unsafe program means that there is no domain of the variables (i.e.\ no mapping of variables to atoms), and we need a domain in order to ground the program so it can be solved. \newline
+
+To make a rule safe, you want to add to that rule a predicate that holds all domain possibilities, which allows the variable to be in the positive body of a new predicate in that rule.
+Then, you figure out after that what role the predicate should play in the rest of the program.
+For example, given the unsafe rule $p \leftarrow {\sim}a(X)$, add the positive $d(X)$ to the body to get $p \leftarrow {\sim}a(X), d(X)$, and then figure out a way to work $d(X)$ into the rest of the program. \newline
+
+(Look out for seemingly unused predicates lying around in the program, or any that have salient antonyms---these are hints about what the new positive body predicate should be.)
+&& 
+$\begin{array}[t]{ll}
+	a(X) \leftarrow b(X) & \checkmark \text{(safe)} \\
+	a(X) \leftarrow {\sim}b(X) & \times \text{(unsafe)}\\
+	a(X) \leftarrow {\sim}b(X), c(X) & \checkmark \\
+	d \leftarrow q(X) & \checkmark \\
+	d \leftarrow {\sim}q(X) & \times \\
+	p(X) \leftarrow q & \times \\
+	\{b(X,Y) : a(X,Y)\} & \checkmark \\
+	\{c(X,Y) : a(X)\} \leftarrow b(Y) & \checkmark
+\end{array}$ &\\ \midrule	
 
 Set generators \newline (Ex.\ 1 Part 2 1.2)
 & Generates candidate stable models using the following notation: \texttt{\{set contents : condition\}}, where numbers on either side indicate the required cardinality of the set (see cardinality rules above).
@@ -1320,9 +1356,9 @@ For example, given the facts \texttt{b(1). b(2).}, the set generator \texttt{\{ 
 The facts we know are also part of each model, so for example, the model formed by the set generator's second set is \texttt{\{ b(1), b(2), a(1) \}}. \newline
 
 These can also be used in the heads of rules, as shown in the examples. 
-Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, then the rule is applied for each candidate model as many times as there are \texttt{Y}s (right).
+Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, then the rule is applied in each model as many times as there are \texttt{Y}s (right; the rule happens once per model for each $c(3)$ and $c(4)$).
 
-&& {\tiny\texttt{%
+&& {\fontsize{6.5}{4}\texttt{%
 		b(1). b(2). c(3). \newline
 		1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
 		\#show a/2.\newline
@@ -1330,7 +1366,7 @@ Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, the
 		\{ a(2, 3) \} \newline
 		\{ a(1, 3) \} \newline
 }} &
-{\tiny\texttt{%
+{\fontsize{6.5}{4}\texttt{%
 		b(1). b(2). c(3). c(4). \newline
 		1 \{ a(X, Y) : b(X) \} 1 :- c(Y).\newline
 		\#show a/2.\newline
@@ -1340,7 +1376,34 @@ Note that if there are facts of form \texttt{c(Y)} for multiple \texttt{Y}s, the
 		\{ a(2, 3), a(1, 4) \} \newline
 		\{ a(2, 3), a(2, 4) \} \newline
 }}
-\\ \midrule
+\\ 
+
+
+& If you include two instances of the same predicate in the condition, it means to generate all combinations of the variables in the domain of that predicate.
+
+&& {\scriptsize\texttt{%
+		b(1). b(2). \newline
+		1 \{ a(X, Y) : b(X), b(Y) \} 1.\newline
+		\#show a/2.\newline
+		---------- \newline
+		\{ a(1, 1) \} \newline
+		\{ a(1, 2) \} \newline
+		\{ a(2, 1) \} \newline
+		\{ a(2, 2) \} \newline
+}} &
+{\scriptsize\texttt{%
+		b(1). b(2). \newline
+		3 \{ a(X, Y) : b(X), b(Y) \} 3.\newline
+		\#show a/2.\newline
+		---------- \newline
+		\{ a(2, 1), a(1, 2), a(2, 2) \} \newline
+		\{ a(1, 1), a(2, 1), a(1, 2) \} \newline
+		\{ a(1, 1), a(1, 2), a(2, 2) \} \newline
+		\{ a(1, 1), a(2, 1), a(2, 2) \} \newline
+}}
+\\ 
+
+\midrule
 
 Show statements \newline (Ex.\ 1 Part 2 1.6)
 & Show statements can change the parts of the stable models that \textsc{clingo} displays.

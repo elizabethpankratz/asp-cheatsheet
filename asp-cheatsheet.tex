@@ -51,7 +51,9 @@
 
 \subsection{Tips for determining stable models of normal programs}
 
-If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation (i.e.\ $1\{a, b\}1$ or $\{a \leftarrow {\sim} b, b \leftarrow {\sim} a\}$), then start by assuming that the heads of negative rules are true and looking for what that implies.\\
+If there are no obvious starting points for solving a program, i.e.\ no facts, unjustifiable atoms (those not appearing in heads of rules), or choice rules or even loops through negation (i.e.\ $1\{a, b\}1$ or $\{a \leftarrow {\sim} b, b \leftarrow {\sim} a\}$), then start by \textbf{assuming that the heads of negative rules are true} and looking for what that implies.\\
+
+Also, if there are variables involved, then \textbf{assuming that a negated body atom really is false} often provides a good starting point.
 
 \vspace{\baselineskip}
 
@@ -161,7 +163,7 @@ d \leftarrow
 	\end{tabular}
 \end{center}
 
-To find the supported model of the completion: if the completion contains $\top$s or $\bot$s, start with those, seeing what they imply.
+To find the \textbf{supported model of the completion}: if the completion contains $\top$s or $\bot$s, start with those, seeing what they imply.
 Write out everything you know from the completion (i.e.\ positive and negative atoms), adding to this set iteratively as the known atoms imply others, and then take the positive atoms as the supported model.
 For the above example:
 \vspace{-.5\baselineskip}
@@ -178,7 +180,7 @@ Can also look for odd loops through negation (i.e.\ something like $\{ d \leftri
 \subsection{Computing loop formulas}
 \label{subsec:lf}
 
-Given a program $P$ that contains a set of loops $loops(P)$, compute the loop formulas $LF(P)$ (= formulas that forbid a loop from being in a stable model) as follows.
+Given a program $P$ that contains a set of loops $loops(P)$ (which are most easily found visually using a dependency graph; see glossary), compute the loop formulas $LF(P)$ (= formulas that forbid a loop from being in a stable model) as follows.
 
 \begin{enumerate}[noitemsep]
 	\item Begin by writing out the disjunction of all atoms involved in each loop, followed by $\rightarrow$, on a new line.
@@ -209,8 +211,8 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & d \leftarrow e, {\sim} a\\
 		%
 		2b (disqualify rules) &  & $\begin{array}{ll}
 		b \leftarrow {\sim} a & \checkmark \\
-		d \leftarrow \underline{b}, c & \times  \text{ (loop atom in pos body)}\\
-		b \leftarrow c, \underline{d} & \times  \text{ (loop atom in pos body)}\\
+		\msout{d \leftarrow \underline{b}, c} & \times  \text{ (loop atom in pos body)}\\
+		\msout{b \leftarrow c, \underline{d}} & \times  \text{ (loop atom in pos body)}\\
 		d \leftarrow e, {\sim} a & \checkmark
 		\end{array}$  \\ & \\
 		%
@@ -218,6 +220,7 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & d \leftarrow e, {\sim} a\\
 	\end{tabular}
 \end{center}
 
+Loop formulas are written as a set: $LF(P) = \{ b \lor d \rightarrow (\neg a) \lor (e \land \neg a) \}$.
 \vspace{\baselineskip}
 
 % ----------------------------------------------------------------------
@@ -242,7 +245,10 @@ For the above example, the supported models of the completion are $\{a, c\}$ and
 	\end{tabular}
 \end{center}
 
-It is possible for none of the supported models to be stable models if no models satisfy the loop formulas. Then the program has no stable models.
+It is possible for none of the supported models to be stable models if no models satisfy the loop formulas. Then the program has no stable models.\\
+
+
+If there are several loop formulas, a model only has to fail one of them to be disqualified from being a stable model (sudden death!).
 
 \pagebreak
 
@@ -260,7 +266,7 @@ Find all unfounded sets of a program $P$ wrt a partial interpretation $\langle \
 	\item Generate all subsets of the GUS and check to see if each of those is unfounded using the criteria below.
 \end{enumerate}
 
-Unfoundedness criteria: A set of atoms $U$ is unfounded wrt some partial interpretation if all rules in the program whose heads are atoms in $U$ meet at least one of the following conditions:
+Unfoundedness criteria: A set of atoms $U$ is unfounded wrt some partial interpretation if \textbf{all rules} in the program whose heads are atoms in $U$ meet at least one of the following conditions:
 
 \begin{enumerate}[noitemsep, label=(\roman*)]
 	\item one atom of the rule's positive body is false in the partial interpretation (i.e.\  $\langle \{\}, \{\text{atom}\} \rangle$)
@@ -287,9 +293,9 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 	c \leftarrow a, \msout{{\sim} e} & \msout{d \leftarrow b, c} & e \leftarrow d, \msout{{\sim} c}\\
 	\end{array}\right\}$ & \\ &\\
 	%
-	3 (minimal model) & $\{a, c\}$ & (this doesn't necessarily mean that these atoms are true)\\ &\\
+	3 (minimal model) & $\{a, c\}$ & (this doesn't necessarily mean that these atoms are actually true)\\ &\\
 	%
-	4 (complement wrt $A$) &  $\{a, b, c, d, e\} \backslash \{a, c\} = \{b, d, e\}$ & Thus, the GUS is $\{b, d, e\}$ \\ &\\
+	4 (complement wrt $A$) &  $A \backslash \{a, c\} = \{a, b, c, d, e\} \backslash \{a, c\} = \{b, d, e\}$ & Thus, the GUS is $\{b, d, e\}$. \\ &\\
 	%
 	5 (subsets unfounded?) & $\begin{array}{lllc} 
 		\text{Subsets of GUS} & \text{Rules} & \text{Unf.\ criterion} & U \text{ unf?}\\ \midrule
@@ -312,7 +318,7 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 		U = \{e\} 		& e \leftarrow d, {\sim} c 			& \text{external support} & \times \\ \midrule
 		U = \varnothing 	&  & & \checkmark \\ \midrule
 	\end{array}$
-	& Thus, the unfounded sets are $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$. \\
+	& Thus, the unfounded sets are $\{b, d, e\}$ (the GUS), $\{b,d\}, \{d,e\}, \{d\}$, and $\varnothing$. \\
 \end{tabular}
 \end{center}
 
@@ -323,7 +329,7 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \subsection{Using loop formulas on unfounded sets}
 \label{subsec:lf-unf}
 
-Apparently we can do this. I don't know why or what good it does.\\
+(Apparently we can do this. I don't know why or what good it does.)\\
 
 
 Using the same method as outlined above for computing loop formulas for the elements of $loops(P)$, loop formulas can also be calculated for unfounded sets.
@@ -338,8 +344,8 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 \begin{center}
 	\begin{tabular}{p{3cm}p{5cm}p{6cm}}
 		Step & Loop-formulas-in-progress & Rules \\ \midrule
-		1 (set-up) & $\varnothing \rightarrow$ & \\
-		2 (empty set) & $LF_P(\varnothing) = \{ \bot \rightarrow \bot \}$ & \\ \midrule
+%		1 (set-up) & $\varnothing \rightarrow$ & \\
+		n/a (empty set) & $LF_P(\varnothing) = \{ \bot \rightarrow \bot \}$ & \\ \midrule
 		
 		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
 		%
@@ -356,46 +362,8 @@ c \leftarrow a, {\sim} e & d \leftarrow b, c & e \leftarrow d, {\sim} c\\
 		\end{array}$  \\ & \\
 		%
 		2c (disjunction) & $LF_P( \{b, d\} ) = \{b \lor d \rightarrow \neg a\}$ \\ \midrule
-		%
-		%
-		%
-%		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
-%		%
-%		2a (identify rules) &  & $\begin{array}{l}
-%		b \leftarrow {\sim} a\\
-%		b \leftarrow d, e\\
-%		d \leftarrow b, c
-%		\end{array}$  \\ & \\
-%		%
-%		2b (disqualify rules) &  & $\begin{array}{ll}
-%		b \leftarrow {\sim} a\\
-%		b \leftarrow d, e\\
-%		d \leftarrow b, c & \checkmark
-%		\end{array}$  \\ & \\
-%		%
-%		2c (disjunction) & $b \lor d \rightarrow \ldots$ \\ \midrule
-%		%
-%		%
-%		%
-%		1 (set-up) & $b \lor d \rightarrow$ & \\ & \\
-%		%
-%		2a (identify rules) &  & $\begin{array}{l}
-%		b \leftarrow {\sim} a\\
-%		b \leftarrow d, e\\
-%		d \leftarrow b, c
-%		\end{array}$  \\ & \\
-%		%
-%		2b (disqualify rules) &  & $\begin{array}{ll}
-%		b \leftarrow {\sim} a\\
-%		b \leftarrow d, e\\
-%		d \leftarrow b, c & \checkmark
-%		\end{array}$  \\ & \\
-%		%
-%		2c (disjunction) & $b \lor d \rightarrow \ldots$ \\ \midrule
 	\end{tabular}
 \end{center}
-
-What does this tell us? Why is this useful to do?
 
 \pagebreak
 
@@ -408,7 +376,7 @@ A technique for iteratively constructing an interpretation of a program (equival
 
 \begin{enumerate}[noitemsep]
 	\item Start with $\Phi^0 \langle \varnothing, \varnothing \rangle = \langle \varnothing, \varnothing \rangle$
-	\item For $\Phi^1$, get facts and atoms with no rules and assign them to the appropriate set in the interpretation.
+	\item For $\Phi^1$, get facts and atoms with no rules and assign them to the appropriate set in the interpretation (i.e.\ true atoms to the set on the left, false atoms to the set on the right).
 	\item For  $\Phi^n (n>1)$, use the current knowledge in the interpretation to figure out the truth value of further atoms.
 	\item Eventually, either a fixpoint will be reached (the Least Fitting Fixpoint, excluding non-externally-supported loop atoms from the $\top$ set), or all of the atoms involved in the program will be assigned to a truth value in the interpretation. Either way, we can stop at that point, and the atoms that are $\top$ constitute the supported model.
 \end{enumerate}
@@ -547,7 +515,8 @@ This derivation tells us that the $\top$ set, $\{c, d\}$, is a \textbf{stable mo
 \subsection{Finding nogoods}
 \label{subsec:ng}
 
-Finding nogoods for a program $P$ involves definitely finding $\Delta_P$, the completion nogoods, and if the program contains loops, additionally finding $\delta_P$, the loop nogoods (unnecessary for a tight program, since then $\Delta_P = \Delta_P \cup \delta_P$).
+Finding nogoods for a program $P$ involves finding $\Delta_P$, the completion nogoods, and if the program contains loops, additionally finding $\delta_P$, the loop nogoods (unnecessary for a tight program, since then $\Delta_P = \Delta_P \cup \delta_P$). 
+Note that in the slides and exercises, $\Lambda_P$ is sometimes used instead of $\delta_P$.
 
 \vspace{\baselineskip}
 \textbf{Completion nogoods $\Delta_P$:}
@@ -563,7 +532,11 @@ First take completion, and use that to compute the following.
 \end{tabular}
 \end{center}
 
-If an atom in the body is negated, then $\ngfa{{\sim} \text{body atom}} = \ngta{\text{body atom}}$, and vice versa.
+If an atom is negated, then $\ngfa{{\sim} \text{body atom}} = \ngta{\text{body atom}}$, and vice versa.
+However, can't change $\ngfb{{\sim} \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.\\
+
+\vspace{\baselineskip}
+\textbf{Completion nogood special cases:}
 
 For facts:, i.e.\ $a \leftrightarrow \top$:
 \begin{align*}
@@ -571,7 +544,7 @@ For facts:, i.e.\ $a \leftrightarrow \top$:
 \Delta (\{\varnothing\}) = & \{ \{ \ngfa{\varnothing} \} \}
 \end{align*}
 
-For unprovable atoms (those not appearing in heads), i.e.\ $b \leftrightarrow \bot$ (no body noogods because no body):
+For unprovable atoms (those not appearing in heads), i.e.\ $b \leftrightarrow \bot$ (no body nogoods because no body):
 \begin{align*}
 \Delta (b) = & \{ \{ \ngta{b} \} \} \\
 \end{align*}
@@ -588,7 +561,6 @@ First determine the loop formulas of form: $\text{loop atom 1} \lor \text{loop a
 	\end{tabular}
 \end{center}
 
-Here, even if a support body atom is negated, can't change $\ngfb{{\sim} \text{support body atom 1}}$ into $\ngtb{\text{support body atom 1}}$ because of the curly brackets---we're considering the set, not the individual atom.
 
 \vspace{\baselineskip}
 
@@ -675,16 +647,16 @@ Then:
 \renewcommand{\arraystretch}{1.5}
 
 To see if any nogoods of a program are unit-resulting wrt a particular assignment, look to see if there are any nogoods for which that assignment corresponds to all but one of the elements.
-If there is only one element left over, then the opposite of that element must hold (see unit propagation in the glossary below), so that nogood is unit-resulting.
+If there is only one element left over, then the opposite of that element must hold (see unit propagation in the glossary below)---thus, that nogood is unit-resulting.
 Violated nogoods are those where all elements hold wrt a given assignment.\\
 
 A nogood doesn't need to contain every element in the assignment for it to be potentially unit-resulting or violated (e.g.\ for the assignment $A = (\ngta{a}, \ngfb{{\sim} a}, \ngta{d})$, any nogood containing any one of those individual assignments can be unit-resulting, such as $\{\ngta{c}, \ngfb{{\sim} a}\}$, resulting in $\ngfa{c}$).\\
 
-For example, given the nogoods above:
+For example, given the nogoods above (the underline indicates that that element $\in A$; note that when all but one element are underlined, i.e.\ in $A$, then the nogood is unit-resulting, and when all elements are underlined, i.e.\ in $A$, then the nogood is violated).
 
 \begin{center}
 	$\begin{array}{lll}
-	\text{Assignments} & \text{Unit-resulting nogoods (underline indicates $\in A$)} & \text{Violated nogoods}\\ \midrule
+	\text{Assignments} & \text{Unit-resulting nogoods} & \text{Violated nogoods}\\ \midrule
 	A = () & - & - \\
 	A = (\ngta{c}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, {\sim} c}, \underline{\ngta{c}}\}, \{\underline{\ngta{c}}, \ngfb{a, d}\} & -\\
 	A = (\ngta{c}, \ngfb{a, d}, \ngta{a}) & \{\ngfb{c}, \underline{\ngta{c}}\}, \{\ngtb{d, {\sim} c}, \underline{\ngta{c}}\}, \{\underline{\ngta{a}}, \ngfb{{\sim}b}\}, \{\underline{\ngfb{a, d}}, \underline{\ngta{a}}, \ngta{d}\}
@@ -756,7 +728,7 @@ The beginning of a derivation is in the following table, formatted as in the exe
 	  & 			& $\ngfb{d, {\sim}c}$ & $\{ \ngfa{b}, \ngtb{d, {\sim}c} \}$ & (4) Unit propagation (UP): we know $\ngfa{b}$ (well, we have declared it), and the only other element in this nogood is $\ngtb{d, {\sim}c}$, and since both elements can't hold at once, the opposite of the unknown one has to hold, so we add the implied literal $\ngfb{d, {\sim}c}$ to our inventory of assignments.\\ \hline
 	3 & $\ngfb{a, {\sim} e}$ & & & (3) Decision literal at decision level 3. This propagates, because it is the body of a rule ($c \leftarrow a, {\sim} e$), and there is (i) a head nogood saying that if all bodies with a given head are false (holds here since there's only one rule for $c$), the head cannot be true; (ii) a body nogood saying that if a body is false, it cannot be the case that each individual literal it contains is true.\\
 	  &				& $\ngfa{c}$ & $\{\ngta{c}, \ngfb{a, {\sim}e}\}$ & (i) UP: The head of the rule must be false, if the body is false. Now we look for nogoods that contain $\ngfa{c}$. There is one: the body nogood for rule $e \leftarrow {\sim} c$, saying that a body cannot be false if the literal in it is true (in our case, $ \ngta{{\sim}c} = \ngfa{c}$).\\
-	  &				& $\ngtb{{\sim} c}$ & $\{ \ngfb{{\sim} c}, \ngfa{c} \}$ & UP. Now, look for a nogood with $\ngtb{{\sim} c}$ in it. There is one for the same rule, saying that the head cannot be false if the body is true.\\
+	  &				& $\ngtb{{\sim} c}$ & $\{ \ngfb{{\sim} c}, \ngfa{c} \}$ & UP. Now, look for a nogood with $\ngtb{{\sim} c}$ in it. There is one for the same rule, $e \leftarrow {\sim} c$, saying that the head cannot be false if the body is true.\\
 	  &				& $\ngta{e}$ & $\{ \ngfa{e}, \ngtb{{\sim}c} \}$ & UP. Now, look for a nogood with $\ngta{e}$ in it. There is one, a body nogood for the rule $a \leftarrow {\sim} b, {\sim} e$ saying that if that body is true, then ${\sim}e$ cannot be false, i.e.\ $e$ cannot be true.\\
 	  &				& $\ngfb{{\sim} b, {\sim} e}$ & $\{ \ngtb{{\sim} b, {\sim} e}, \ngta{e} \}$ & UP. \\
 	  &				& $\vdots$ &  $\vdots$ & ... this continues for a while; I'm going to jump to the conflict, which arises when we know $\ngfb{{\sim} b, {\sim} e}$ (was just implied), $\ngfb{{\sim} b, {\sim} g}$ (skipped), and $\ngta{a}$ (from $dl$ 1) \\
@@ -817,7 +789,10 @@ Continuing the example above (on the top left is the original conflict nogood; o
 \end{center}
 
 Now, armed with the new nogood $\delta = \{ \ngta{a}, \ngta{e} \}$, we jump back up to decision level 1, where all we knew was $\ngta{a}$.
-Because there's only one element in $\delta$ that we don't know, namely $\ngta{e}$, we can unit-propagate: infer $\ngfa{e}$ and continue on our merry way (until we find another conflict and are doomed to repeat this whole thing again).
+Because there's only one element in $\delta$ that we don't know, namely $\ngta{e}$, we can unit-propagate: infer $\ngfa{e}$ and continue on our merry way (until we find another conflict and are doomed to repeat this whole thing again).\\
+
+When asked for the ``assignment'' at this point, this just means to add the new nogood at the end of the earlier decision level and use that nogood to continue unit propagation at that earlier level (i.e.\ to take the opposite of the remaining element in the nogood).
+Just writing this first step seems to be enough.
 
 % ----------------------------------------------------------------------
 
@@ -1158,7 +1133,7 @@ This can lead to multiple stable models.
 	\{ b, d \}} \newline \\ %\midrule
 
 
-& If there are multiple triggers, i.e. that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
+& If there are multiple triggers, i.e.\ that mutually contradictory statement shows up once with, say, \texttt{a} and \texttt{b} and also once with \texttt{c} and \texttt{d}, then every combination of these has to be explored.
 && \texttt{%
 	a :- not b. \newline
 	b :- not a. \newline
@@ -1336,7 +1311,7 @@ So even if we have conflicting results (i.e.\ one rule says an atom is true, ano
 Safety
 &  A rule is safe if all variables appearing anywhere within it also appear in its positive body, or in the condition of a set generator. 
 A program is safe if all rules are safe.
-A program needs to be safe because an unsafe program means that there is no domain of the variables (i.e. no mapping of variables to atoms), and we need a domain in order to ground the program so it can be solved.
+A program needs to be safe because an unsafe program means that there is no domain of the variables (i.e.\ no mapping of variables to atoms), and we need a domain in order to ground the program so it can be solved.
 && -- &\\ \midrule	
 
 Set generators \newline (Ex.\ 1 Part 2 1.2)
@@ -1441,7 +1416,7 @@ Also in the form of $\langle \{\top\}, \{\bot\} \rangle$, where $\{\top\}$ is a 
 		\item However, each normal logic program does not necessarily have a stable model.
 		\item Given a normal logic program $P$, it is not true that the reduct $P^X$ is contained in $P^Y$ for each subset $X$ of a set of $Y$ atoms.
 		\begin{itemize}[noitemsep]
-			\item Because the reduct gets smaller if there are more atoms, since more rules get crossed out. So $X$ being a subset of $Y$ (i.e. $Y$ has more atoms, is more restrictive) means that the reduct $P^Y$ is a subset of the reduct $P^X$, rather than the other way around.
+			\item Because the reduct gets smaller if there are more atoms, since more rules get crossed out. So $X$ being a subset of $Y$ (i.e.\ $Y$ has more atoms, is more restrictive) means that the reduct $P^Y$ is a subset of the reduct $P^X$, rather than the other way around.
 		\end{itemize}
 		\item If a set $X$ of atoms is a model of a normal logic program $P$, then $X$ is a model of the reduct $P^Y$ for each superset $Y$ of $X$.
 		\item Given a normal logic program $P$, each stable model of $P$ is a proper subset minimal model of $P$.
